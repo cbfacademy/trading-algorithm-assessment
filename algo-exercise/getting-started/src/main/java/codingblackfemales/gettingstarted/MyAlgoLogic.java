@@ -31,6 +31,7 @@ public class MyAlgoLogic implements AlgoLogic {
         var orderBookAsString = Util.orderBookToString(state);
 
         logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
+        
 
         // Fetch the best bid (highest price buyers are willing to pay)
         BidLevel bestBid = state.getBidAt(0);
@@ -40,8 +41,11 @@ public class MyAlgoLogic implements AlgoLogic {
         AskLevel bestAsk = state.getAskAt(0);
         long bestAskPrice = bestAsk.price;
 
+        logger.info("Best Bid Price: " + bestBidPrice);
+    logger.info("Best Ask Price: " + bestAskPrice);
         // Retrieve active child orders
         var activeOrders = state.getActiveChildOrders();
+        logger.info("Active Orders: " + activeOrders);
 
         //Algo checks if the current best bid price is below a certain threshold, if this condition is met and there is no active buy order at that price, 
         //algo creates a new child order to buy a specified quantity of shares at the best bid price.
