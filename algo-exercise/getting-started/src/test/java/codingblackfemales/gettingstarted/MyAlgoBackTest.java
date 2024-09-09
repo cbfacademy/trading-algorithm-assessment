@@ -1,20 +1,22 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.sotw.ChildOrder;
+import messages.marketdata.Source;
+import messages.marketdata.BookUpdateEncoder;
+import messages.marketdata.InstrumentStatus;
+import messages.marketdata.Venue;
+import messages.marketdata.MessageHeaderEncoder;
+import org.agrona.concurrent.UnsafeBuffer;
 import org.junit.Test;
 
-/**
- * This test plugs together all of the infrastructure, including the order book (which you can trade against)
- * and the market data feed.
- *
- * If your algo adds orders to the book, they will reflect in your market data coming back from the order book.
- *
- * If you cross the srpead (i.e. you BUY an order with a price which is == or > askPrice()) you will match, and receive
- * a fill back into your order from the order book (visible from the algo in the childOrders of the state object.
- *
- * If you cancel the order your child order will show the order status as cancelled in the childOrders of the state object.
- *
- */
+import java.nio.ByteBuffer;
+import java.util.List;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
+
 public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
     @Override
