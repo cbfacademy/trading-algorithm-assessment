@@ -52,7 +52,8 @@ public class MyAlgoLogic implements AlgoLogic {
         if (bestBidPrice < BUY_THRESHOLD) {
         if (activeOrders.stream().noneMatch(order -> order.getPrice() == bestBidPrice && order.getSide() == Side.BUY)) {
          //creates a new child order with the specified side(buy), quantity and price. A new order is only created if there is no existing order at that price.
-         //this prevents duplicate orders.   
+         //this prevents duplicate orders. 
+         logger.info("Creating buy order at price: " + bestBidPrice);  
         return new CreateChildOrder(Side.BUY, ORDER_QUANTITY, bestBidPrice);
     } 
      }
@@ -68,6 +69,7 @@ public class MyAlgoLogic implements AlgoLogic {
             //if order to cancel is not null, then an order has been identified for cancellation which could be due to unfavourable market conditions
         if (orderToCancel != null) {
             //Makes sure algo doesn't attempt to sell without having a corresponding buy order 
+            logger.info("Cancelling order at price: " + orderToCancel.getPrice());
             return new CancelChildOrder(orderToCancel);
         }
     }
