@@ -36,7 +36,7 @@ This project is configured for Java 17. If you have a later version installed, i
 You will first need to run the Maven `install` task to make sure the binary encoders and decoders are installed and available for use. You can use the provided Maven wrapper or an installed instance of Maven, either in the command line or from the IDE integration.
 
 To get started, run the following command from the project root: `./mvnw clean install`. Once you've done this, you can compile or test specific projects using the `--projects` flag, e.g.:
-
+[]()
 - Clean all projects: `./mvnw clean`
 - Test all `algo-exercise` projects: `./mvnw test --projects algo-exercise`
 - Compile the `getting-started` project only: `./mvnw compile --projects algo-exercise/getting-started`
