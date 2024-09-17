@@ -1,13 +1,10 @@
-/*
- * package codingblackfemales.gettingstarted;
- * 
- * import codingblackfemales.algo.AlgoLogic;
- * 
- * //import static org.junit.Assert.assertEquals;
- * 
- * import org.junit.Test;
- * 
- * /**
+package codingblackfemales.gettingstarted;
+
+//import static org.junit.Assert.assertEquals;
+import codingblackfemales.algo.AlgoLogic;
+import org.junit.Test;
+
+/**
  * This test is designed to check your algo behavior in isolation of the order
  * book.
  *
@@ -20,23 +17,32 @@
  * When you are comfortable you algo does what you expect, then you can move on
  * to creating the MyAlgoBackTest.
  *
- * 
- * public class MyAlgoTest extends AbstractAlgoTest {
- * 
- * @Override
- * public AlgoLogic createAlgoLogic() {
- * // this adds your algo logic to the container classes
- * return new MyAlgoLogic();
- * }
- * 
- * @Test
- * public void testDispatchThroughSequencer() throws Exception {
- * 
- * // create a sample market data tick....
- * send(createTick());
- * 
- * // simple assert to check we had 3 orders created
- * assertEquals(container.getState().getChildOrders().size(), 3);
- * }
- * }
  */
+public class MyAlgoTest extends AbstractAlgoTest {
+
+    @Override
+    public AlgoLogic createAlgoLogic() {
+        // this adds your algo logic to the container classes
+        return new MyAlgoLogic();
+    }
+
+    @Test
+    public void testDispatchThroughSequencer() throws Exception {
+
+        // create a sample market data tick....
+        send(createTick());
+
+        // simple assert to check we had 3 orders created
+        assertEquals(container.getState().getChildOrders().size(), 3);
+
+        send(createTick2());
+
+        assertEquals(container.getState().getActiveChildOrders().size(), 5);
+
+        send(createTickmore());
+
+        assertEquals(container.getState().getActiveChildOrders().size(), 4);
+
+    }
+
+}
