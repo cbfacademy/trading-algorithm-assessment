@@ -1,5 +1,7 @@
 package codingblackfemales.gettingstarted;
 
+//import static org.junit.Assert.assertEquals;
+
 import codingblackfemales.algo.AlgoLogic;
 import codingblackfemales.sotw.ChildOrder;
 
@@ -38,7 +40,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals(container.getState().getChildOrders().size(), 3);
 
         // when: market data moves towards us
-        send(createTickmore());
+        send(createTick2());
 
         // then: get the state
         var state = container.getState();
