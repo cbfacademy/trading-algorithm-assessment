@@ -3,6 +3,8 @@ package codingblackfemales.gettingstarted;
 import codingblackfemales.algo.AlgoLogic;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 
 /**
  * This test is designed to check your algo behavior in isolation of the order book.
@@ -30,6 +32,15 @@ public class MyAlgoTest extends AbstractAlgoTest {
         send(createTick());
 
         //simple assert to check we had 3 orders created
-        //assertEquals(container.getState().getChildOrders().size(), 3);
+        assertEquals(container.getState().getChildOrders().size(), 5
+        );
+        //child order has decreased by 1 -Order cancellation failed,size did not decrease",
+       //assertEquals(container.getState().getChildOrders().size(),  1) ;
     }
-}
+
+
+
+
+
+    }
+
