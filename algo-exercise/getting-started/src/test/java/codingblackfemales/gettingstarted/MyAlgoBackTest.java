@@ -33,8 +33,11 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //when: market data moves towards us
         send(createTick2());
 
+        send(createTick3());
+
         //then: get the state
         var state = container.getState();
+
 
         //Check things like filled quantity, cancelled order count etc....
         //long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
