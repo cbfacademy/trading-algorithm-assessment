@@ -96,3 +96,4 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
 // }
 
+// mvn test -pl :getting-started -DMyAlgoBackTest 
