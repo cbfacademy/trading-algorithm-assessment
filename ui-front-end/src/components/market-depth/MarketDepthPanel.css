@@ -7,11 +7,13 @@ body{
 
 .marketDepthPanel {
     margin: 0 auto; /* Centers the table horizontally */  
-    max-width: 100%;
+    width: 35% !important;
+    max-width: none !important;
     display: table; /*inline-block;*/
+    border: 2px solid red;
     border-collapse: collapse;  
     min-height: 500px; /* Ensure there is enough height for 10 rows */
-    height: auto; /* Automatically adjusts height */
+    height: 595; /* Automatically adjusts height */
     overflow-y: auto; /* Enable scrolling if necessary */
     position: relative; 
   }
@@ -26,7 +28,9 @@ body{
 
 /* Ensure the table itself has a border */
 .marketDepthPanel-table {
-    border: 1px solid #000; /* Outer border for the entire table, including the bottom */
+    width: 100%;
+    max-width: none !important;
+    border: 2px solid #000; /* Outer border for the entire table, including the bottom */
     border-collapse: collapse;
 }
 
@@ -48,6 +52,11 @@ body{
     text-align: center; /* Centers the content horizontally */
 }
 
+/* Center the values in the first column (Level) */
+.marketDepthPanel-table td:nth-child(1) {
+    text-align: center; /* Centers the text in the first column (Level) */
+}
+
 
 /* Center align the "Quantity" column header on the Bid side */
 .marketDepthPanel-table th:nth-child(2) {
@@ -57,13 +66,19 @@ body{
 
 /* Right-align all quantities in the Bid column (2nd column in tbody) */
 .marketDepthPanel-table td:nth-child(2) {
-    padding-right: 0;
+    padding-right: 5px;
     text-align: right;
 }
 
 
+/* Right-align the "Price" header in the Bid column (3rd column) and add padding */
+.marketDepthPanel-table th:nth-child(3) {
+    text-align: right; /* Right-align the text */
+    padding-right: 10px; /* Add padding to the right to create space from the cell border */
+}
+
+
 /* Right-align all quantities and header in the Bid column (3rd column in tbody) */
-.marketDepthPanel-table th:nth-child(3),
 .marketDepthPanel-table td:nth-child(3) {
     text-align: right;
     padding-right: 5px;
@@ -72,7 +87,13 @@ body{
 /* Left-align the data in the 4th column (Ask Price) */
 .marketDepthPanel-table td:nth-child(4) {
     text-align: left;  /* Left-align the header and data */
-    padding-left: 5px;
+    padding-left: 2px;
+}
+
+/* Left-align the "Price" header in the Ask column (4th column) and add padding */
+.marketDepthPanel-table th:nth-child(4) {
+    text-align: left; /* Left-align the text */
+    padding-left: 10px; /* Add padding to the left to create space from the border */
 }
 
 /* Left-align the data in the 5th column (Ask Quantity) */

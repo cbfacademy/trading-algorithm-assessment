@@ -1,0 +1,29 @@
+.price-cell {
+    white-space: nowrap; /* Prevent wrapping of content */
+    position: relative; /* Allows precise positioning of the arrow */
+    padding: 5px 10px; /* Add padding for spacing inside the cell */
+}
+
+/* Ensure the Bid arrow appears before the price and stays left aligned */
+.price-cell .arrow:first-child {
+    position: absolute;
+    left: 5px; /* Align the arrow to the left edge (for Bid) */
+    margin-right: 10px; /* Adds space between the Bid arrow and price */
+    vertical-align: middle; /* Align the arrow with the middle of the price */
+}
+
+/* Adjust the Ask arrow to stay closer to the price without moving into the Quantity column */
+.price-cell .arrow:last-child {
+    position: absolute;
+    right: 17px; /* Adjust this to move the Ask arrow closer to the price */
+    margin-left: 0; /* Adds space between the Ask price and arrow */
+    vertical-align: middle; /* Align the arrow with the middle of the price */
+}
+
+/* Make sure the price text stays aligned */
+.price-cell span.price {
+    display: inline-block;
+    margin-left: 5px; /* Small margin for Bid price */
+    margin-right: 5px; /* Small margin for Ask price */
+    vertical-align: middle; /* Align price with the arrow */
+}
