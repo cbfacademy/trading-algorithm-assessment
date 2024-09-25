@@ -49,7 +49,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 }
 
 
-// ORIGINAL CODE ON GITHUB REPO
+// ORIGINAL CODE FROM GITHUB REPO
 // package codingblackfemales.gettingstarted;
 
 // import codingblackfemales.algo.AlgoLogic;
