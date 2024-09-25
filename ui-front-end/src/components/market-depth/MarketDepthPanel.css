@@ -1,0 +1,89 @@
+/* FROM CHAT GPT and FROM BROCODE YOUTUBE VIDEO
+
+/* Centering the MarketDepthFeature and setting its size */
+body{
+    font-size: 12px;
+}
+
+.marketDepthPanel {
+    margin: 0 auto; /* Centers the table horizontally */  
+    max-width: 100%;
+    display: table; /*inline-block;*/
+    border-collapse: collapse;  
+    min-height: 500px; /* Ensure there is enough height for 10 rows */
+    height: auto; /* Automatically adjusts height */
+    overflow-y: auto; /* Enable scrolling if necessary */
+    position: relative; 
+  }
+
+  /* Add borders between all table cells */
+.marketDepthPanel-table, 
+.marketDepthPanel-table th, 
+.marketDepthPanel-table td {
+    border: 1px solid #000; /* Solid black borders between all cells */
+    border-collapse: collapse; /* Collapse borders for cleaner look. Avoid double borders between cells */
+}
+
+/* Ensure the table itself has a border */
+.marketDepthPanel-table {
+    border: 1px solid #000; /* Outer border for the entire table, including the bottom */
+    border-collapse: collapse;
+}
+
+
+/* Centering the table headers */
+.marketDepthPanel-table th { 
+    text-align: center; /* Centers the column headings */  
+}
+
+/* Right align the data cells only */
+
+.marketDepthPanel td {
+    padding: 0 30px;
+    text-align: right; /* Aligns data cells to the right*/        
+}
+
+
+.centered-header {
+    text-align: center; /* Centers the content horizontally */
+}
+
+
+/* Center align the "Quantity" column header on the Bid side */
+.marketDepthPanel-table th:nth-child(2) {
+    text-align: center;
+}
+
+
+/* Right-align all quantities in the Bid column (2nd column in tbody) */
+.marketDepthPanel-table td:nth-child(2) {
+    padding-right: 0;
+    text-align: right;
+}
+
+
+/* Right-align all quantities and header in the Bid column (3rd column in tbody) */
+.marketDepthPanel-table th:nth-child(3),
+.marketDepthPanel-table td:nth-child(3) {
+    text-align: right;
+    padding-right: 5px;
+}
+
+/* Left-align the data in the 4th column (Ask Price) */
+.marketDepthPanel-table td:nth-child(4) {
+    text-align: left;  /* Left-align the header and data */
+    padding-left: 5px;
+}
+
+/* Left-align the data in the 5th column (Ask Quantity) */
+.marketDepthPanel-table td:nth-child(5) {
+    text-align: left;
+    padding-left: 10px;
+}
+
+/* Force the Ask heading to be centered */
+.marketDepthPanel-table th[colspan="2"].centered-header {
+    text-align: center !important; /* Add !important to ensure centering */
+}
+
+

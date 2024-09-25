@@ -23,6 +23,8 @@ const testData: MarketDepthRow[] = [
  * TODO
  */
 export const MarketDepthFeature = () => {
-  const data = useMarketDepthData(schemas.prices);
-  return <MarketDepthPanel data={testData}/>;
+//  const data = useMarketDepthData(schemas.prices);
+  return (
+    <MarketDepthPanel data={testData}/>
+  );
 };
