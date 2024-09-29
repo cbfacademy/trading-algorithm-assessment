@@ -35,7 +35,7 @@ export const MarketDepthPanel: React.FC<MarketDepthPanelProps> = ({ data }) => {
             <th colSpan="2" className="centered-header">Ask</th> {/* Span over offer and offerQuantity */}
           </tr>
           <tr>
-            <th>Level</th>
+            <th></th>
             <th>Quantity</th>
             <th>Price</th>
             <th>Price</th>

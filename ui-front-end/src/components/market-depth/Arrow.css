@@ -27,3 +27,23 @@
     margin-right: 5px; /* Small margin for Ask price */
     vertical-align: middle; /* Align price with the arrow */
 }
+
+/* BELOW CODE ADDED 29/9/2024*
+/*Increase the size of the arrow only */
+.arrow {
+    font-size: 15px; /* Increase size of the arrow only */
+    font-weight: bold; /* Make the arrow bold (optional for more thickness) */
+    cursor: pointer; /* Change mouse cursor to pointer on hover */
+}
+
+
+/* Blue color for up arrow */
+.arrow.up {
+    color: blue; /* Color for down arrow */
+}
+
+
+/* Red color for down arrow */
+.arrow.down {
+    color: red; /* Color for up arrow */
+}
