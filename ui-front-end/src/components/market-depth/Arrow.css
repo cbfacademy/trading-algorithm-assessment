@@ -15,7 +15,7 @@
 /* Adjust the Ask arrow to stay closer to the price without moving into the Quantity column */
 .price-cell .arrow:last-child {
     position: absolute;
-    right: 17px; /* Adjust this to move the Ask arrow closer to the price */
+    right: 23px; /* Adjust this to move the Ask arrow closer to the price - ammended 29/9/24 - was 17px*/
     margin-left: 0; /* Adds space between the Ask price and arrow */
     vertical-align: middle; /* Align the arrow with the middle of the price */
 }
