@@ -82,12 +82,14 @@ body{
 .marketDepthPanel-table td:nth-child(3) {
     text-align: right;
     padding-right: 5px;
+    cursor: pointer; /* Change cursor to pointer for Bid prices - ADDED 29/9/2024 */
 }
 
 /* Left-align the data in the 4th column (Ask Price) */
 .marketDepthPanel-table td:nth-child(4) {
     text-align: left;  /* Left-align the header and data */
     padding-left: 2px;
+    cursor: pointer; /* Change cursor to pointer for Bid prices - ADDED 29/9/2024 */
 }
 
 /* Left-align the "Price" header in the Ask column (4th column) and add padding */
