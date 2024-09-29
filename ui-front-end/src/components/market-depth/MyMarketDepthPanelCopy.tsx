@@ -57,7 +57,8 @@ export const MarketDepthPanel: React.FC<MarketDepthPanelProps> = ({ data }) => {
                 <td>{row.bidQuantity}</td>
 
                 {/* Bid Price with dynamic arrow */}
-                <td className="price-cell">
+                {/*<td className="price-cell">*/}
+                <td className={`price-cell ${row.bid > prevBid ? 'price-up' : 'price-down'}`}> {/* ammended code to include background colours in bid and ask prices when they move up and down*/}
                   <span className="arrow">
                     <Arrow direction={bidArrowDirection} />
                   </span>
@@ -65,7 +66,8 @@ export const MarketDepthPanel: React.FC<MarketDepthPanelProps> = ({ data }) => {
                 </td>
 
                 {/* Ask Price with dynamic arrow */}
-                <td className="price-cell">
+                {/*<td className="price-cell">*/}
+                <td className={`price-cell ${row.offer > prevOffer ? 'price-up' : 'price-down'}`}> {/* ammended code to include background colours in bid and ask prices when they move up and down*/}
                   <span className="price">{row.offer}</span> {/* Ask Price */}
                   <span className="arrow">
                     <Arrow direction={offerArrowDirection} />
@@ -81,50 +83,3 @@ export const MarketDepthPanel: React.FC<MarketDepthPanelProps> = ({ data }) => {
     </div>
   );
 };
-
-
-
-
-// ORIGINAL CODE BEFORE THE ARROW WAS ADDED
-
-// import { MarketDepthRow } from "./useMarketDepthData";
-// import "./MarketDepthPanel.css"; // Import the new CSS file
-// import { Arrow } from './Arrow'; // Import the Arrow component
-// interface MarketDepthPanelProps {
-//     data: MarketDepthRow[];
-//   }
-//  export const MarketDepthPanel = (props: MarketDepthPanelProps) => {
-//      const { data } = props; // from copilot
-//   return (
-//     <div className='marketDepthPanel'> {/*parent containter*/}
-//         <table className="marketDepthPanel-table">
-//           <thead>
-//             <tr>
-//               <th></th> {/* Centered level column */}
-//               <th colSpan="2" className="centered-header">Bid</th> {/* Span over bid and bidQuantity */}
-//               <th colSpan="2" className="centered-header">Ask</th> {/* Span over offer and offerQuantity */}
-//             </tr>              
-//             <tr>
-//               <th></th>
-//               <th>Quantity</th>                                
-//               <th>Price</th>                
-//               <th>Price</th>
-//               <th>Quantity</th>
-//             </tr>
-//           </thead>
-//           <tbody>
-//             {data.map((row, index) => ( // Ensure 10 rows. From chat GPT
-//               <tr key={index}>
-//                 <td>{row.level}</td> 
-//                 <td>{row.bidQuantity}</td>                   
-//                 <td>{row.bid}</td>                
-//                 <td>{row.offer}</td>
-//                 <td>{row.offerQuantity}</td>
-//               </tr>
-//             ))}
-//           </tbody>        
-//         </table>      
-//       </div>
-//   );
-// }
-

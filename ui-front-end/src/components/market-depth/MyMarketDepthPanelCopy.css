@@ -62,7 +62,8 @@ body{
 .marketDepthPanel-table td:nth-child(1),
 .marketDepthPanel-table th:nth-child(1) {
     width: 10%; /* Reduce the width of the first column to half its current size */
-    white-space: nowrap; /* Prevent the Level column content from wrapping */   
+    white-space: nowrap; /* Prevent the Level column content from wrapping */
+   
 }
 
 /* Let other columns expand dynamically - ADDED 29/9/2024 */
@@ -121,5 +122,15 @@ body{
     text-align: center !important; /* Add !important to ensure centering */
 }
 
+/* BELOW CODE ADDED 29/9/2024
+/* Blue background color for prices that go up */
+.price-up {
+    background-color: blue; /* Background color for up price */
+    color: white; /* White text for contrast */
+}
 
-
+/* Red background color for prices that go down */
+.price-down {
+    background-color: red; /* Background color for down price */
+    color: white; /* White text for contrast */
+}
