@@ -3,8 +3,6 @@ import { MarketDepthRow } from "./useMarketDepthData";
 import { useMarketDepthData } from "./useMarketDepthData";
 import { schemas } from "../../data/algo-schemas";
 
-
-
 // prettier-ignore
 // const testData: MarketDepthRow[] = [
 //   { symbolLevel:"1230", level: 0, bid: 1000, bidQuantity: 500, offer: 1010, offerQuantity: 700 },
