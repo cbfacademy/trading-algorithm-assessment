@@ -13,6 +13,8 @@ import messages.order.Side;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MyAlgoLogic implements AlgoLogic {
 
@@ -24,6 +26,9 @@ public class MyAlgoLogic implements AlgoLogic {
     private static final long SELL_THRESHOLD = 120L;
     //Quantity to buy or sell when an action is triggered
     private static final long ORDER_QUANTITY = 50L;
+
+    // Map to store the buy price against the orderId
+    private Map<Long, Long> buyPrices = new HashMap<>();
 
     @Override
     public Action evaluate(SimpleAlgoState state) {
@@ -53,7 +58,10 @@ public class MyAlgoLogic implements AlgoLogic {
         if (activeOrders.stream().noneMatch(order -> order.getPrice() == bestBidPrice && order.getSide() == Side.BUY)) {
          //creates a new child order with the specified side(buy), quantity and price. A new order is only created if there is no existing order at that price.
          //this prevents duplicate orders. 
-         logger.info("Creating buy order at price: " + bestBidPrice);  
+         logger.info("Creating buy order at price: " + bestBidPrice);
+         
+         //track the buy price.
+         buyPrices.put(bestBidPrice, bestBidPrice);  
         return new CreateChildOrder(Side.BUY, ORDER_QUANTITY, bestBidPrice);
     } 
      }
@@ -68,8 +76,12 @@ public class MyAlgoLogic implements AlgoLogic {
     
             //if order to cancel is not null, then an order has been identified for cancellation which could be due to unfavourable market conditions
         if (orderToCancel != null) {
+            
+            //to calculate profit
+            long buyPrice = buyPrices.getOrDefault(orderToCancel.getOrderId(), 0L);
+                long profit = (bestAskPrice - buyPrice) * ORDER_QUANTITY;
             //Makes sure algo doesn't attempt to sell without having a corresponding buy order 
-            logger.info("Cancelling order at price: " + orderToCancel.getPrice());
+            logger.info("Cancelling order at price: " + orderToCancel.getPrice()+ ", Profit: " + profit);
             return new CancelChildOrder(orderToCancel);
         }
     }
