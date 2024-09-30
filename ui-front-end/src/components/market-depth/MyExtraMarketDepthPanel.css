@@ -7,7 +7,7 @@ body{
 
 .marketDepthPanel {
     margin: 0 auto; /* Centers the table horizontally */  
-    width: 35% !important; /* was 35% */
+    width:40% !important; /* was 35% */
     max-width: none !important;
     display: table; /*inline-block;*/
     /*border: 2px solid red;*/
@@ -35,6 +35,11 @@ body{
     table-layout: fixed; /* Ensure columns respect set widths - ADDED 29/9/24*/
 }
 
+/* Force the Ask heading to be centered */
+.marketDepthPanel-table th[colspan="3"].centered-header {
+    text-align: center !important; /* Add !important to ensure centering */
+}
+
 
 /* Centering the table headers */
 .marketDepthPanel-table th { 
@@ -44,13 +49,18 @@ body{
 /* Padding and alignment for data cells only */
 
 .marketDepthPanel td {
-    padding: 0 30px;
+    padding: 0; /*30px*/
     text-align: right; /* Aligns data cells to the right*/
 }
 
 
 .centered-header {
     text-align: center; /* Centers the content horizontally */
+}
+
+/* Center align the "Quantity" column header on the Bid side */
+.marketDepthPanel-table th:nth-child(2) {
+    text-align: center;
 }
 
 
@@ -89,12 +99,19 @@ body{
 }
 
     
-/* Set the width of the Bid Arrow column */
+/* Set the width and text alignment of the Bid Arrow column */
 .marketDepthPanel-table td:nth-child(3),
 .marketDepthPanel-table th:nth-child(3) {
     /*width: 40px !important;*/
-    text-align: center;
-    white-space: nowrap; /* Prevent the Level column content from wrapping */   
+    text-align: left;  
+}
+
+/* Remove right border for Bid arrow (3rd column) */
+.marketDepthPanel-table td:nth-child(3),
+.marketDepthPanel-table th:nth-child(3) {
+    border-right: none; /* Removes the right border */
+    padding-left: 10px;
+    margin-left: 10px;
 }
 
 
@@ -104,18 +121,25 @@ body{
     white-space: nowrap; /* Prevent the Level column content from wrapping */
 }
 
+/* Remove left border for Bid Price (4th column) */
+.marketDepthPanel-table td:nth-child(4),
+.marketDepthPanel-table th:nth-child(4) {
+    border-left: none; /* Removes the left border */
+}
 
 /* Right-align the "Price" header in the Bid column (4th column) and add padding */
 .marketDepthPanel-table th:nth-child(4) {
     text-align: right; /* Right-align the text */
-    padding-right: 10px; /* Add padding to the right to create space from the cell border */
+    padding-right: 20px; /* Add padding to the right to create space from the cell border */
+    margin-right: 20px;
 }
 
 
 /* Right-align all quantities and header in the Bid column (4th column in tbody) */
 .marketDepthPanel-table td:nth-child(4) {
     text-align: right;
-    padding-right: 5px;
+    padding-right: 20px;
+    margin-right: 20px;
     cursor: pointer; /* Change cursor to pointer for Bid prices - ADDED 29/9/2024 */
 }
 
@@ -125,11 +149,17 @@ body{
     white-space: nowrap; /* Prevent the Level column content from wrapping */
 }
 
+/* Remove right border for Ask Price (5th column) */
+.marketDepthPanel-table td:nth-child(5),
+.marketDepthPanel-table th:nth-child(5) {
+    border-right: none; /* Removes the right border */
+}
 
 /* Left-align the data in the 5th column (Ask Price) */
 .marketDepthPanel-table td:nth-child(5) {
     text-align: left;  /* Left-align the header and data */
-    padding-left: 2px;
+    padding-left: 20px;
+    margin-left: 20px;
     cursor: pointer; /* Change cursor to pointer for Bid prices - ADDED 29/9/2024 */
 }
 
@@ -137,15 +167,23 @@ body{
 /* Left-align the "Price" header in the Ask column (5th column) and add padding */
 .marketDepthPanel-table th:nth-child(5) {
     text-align: left; /* Left-align the text */
-    padding-left: 5px; /* Add padding to the left to create space from the border */
+    margin-left: 20px;
+    padding-left: 20px; /* Add padding to the left to create space from the border */
 }
 
+/* Remove left border for Ask Arrow (6th column) */
+.marketDepthPanel-table td:nth-child(6),
+.marketDepthPanel-table th:nth-child(6) {
+    border-left: none; /* Removes the left border */
+}
 
 /* Set the width and text-alignment of the Ask Arrow column */
 .marketDepthPanel-table td:nth-child(6),
 .marketDepthPanel-table th:nth-child(6) {
-    width: 40px !important;
-    text-align: center;
+    width: 30px !important;
+    text-align: right;
+    padding-right: 10px;
+    margin-right: 10px;
     white-space: nowrap; /* Prevent the Level column content from wrapping */   
 }
 
@@ -156,12 +194,6 @@ body{
     text-align: left;
     padding-left: 10px;    
     white-space: nowrap; /* Prevent the Level column content from wrapping */
-}
-
-
-/* Force the Ask heading to be centered */
-.marketDepthPanel-table th[colspan="2"].centered-header {
-    text-align: center !important; /* Add !important to ensure centering */
 }
 
 
