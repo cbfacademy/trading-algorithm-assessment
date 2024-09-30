@@ -14,7 +14,6 @@ export const Arrow: React.FC<ArrowProps> = ({ direction }) => {
 };
 
 
-
 // Ammended code - This one is using arrows from Font Awesome Icons but they did not work as they were pointing up
 // import React from 'react';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

@@ -1,4 +1,5 @@
 import { MarketDepthPanel } from './MarketDepthPanel';
+import { MyExtraMarketDepthPanel } from './MyExtraMarketDepthPanel';
 import { MarketDepthRow } from "./useMarketDepthData";
 import { useMarketDepthData } from "./useMarketDepthData";
 import { schemas } from "../../data/algo-schemas";
@@ -23,7 +24,8 @@ import { schemas } from "../../data/algo-schemas";
 export const MarketDepthFeature = () => {
   const data = useMarketDepthData(schemas.prices);
   return (
-    <MarketDepthPanel data={data}/>
-  //  <MarketDepthPanel data={testData} /> 
+    <MyExtraMarketDepthPanel data={data}/>
+//    <MarketDepthPanel data={data}/>
+    //  <MarketDepthPanel data={testData} /> 
   )
 };

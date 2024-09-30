@@ -1,24 +1,34 @@
-.price-cell {
-    white-space: nowrap; /* Prevent wrapping of content */
-    position: relative; /* Allows precise positioning of the arrow */
-    padding: 5px 10px; /* Add padding for spacing inside the cell */
+/* Arrow column for Bid and Ask */
+.arrow-column {
+    text-align: center; /* Center the arrows in their column */
+    vertical-align: middle; /* Vertically align the arrows */
+    padding: 5px; /* Add some padding for better spacing */
+    width: 50px; /* Adjust the width as necessary */
 }
 
-/* Ensure the Bid arrow appears before the price and stays left aligned */
-.price-cell .arrow:first-child {
-    position: absolute;
-    left: 5px; /* Align the arrow to the left edge (for Bid) */
-    margin-right: 10px; /* Adds space between the Bid arrow and price */
-    vertical-align: middle; /* Align the arrow with the middle of the price */
+/* Adjust the size of the arrows */
+.arrow {
+    font-size: 15px; /* Increase the size of the arrow */
+    font-weight: bold; /* Make the arrow bold */
+    cursor: pointer; /* Change the mouse to a pointer when hovering */
 }
 
-/* Adjust the Ask arrow to stay closer to the price without moving into the Quantity column */
-.price-cell .arrow:last-child {
-    position: absolute;
-    right: 17px; /* Adjust this to move the Ask arrow closer to the price */
-    margin-left: 0; /* Adds space between the Ask price and arrow */
-    vertical-align: middle; /* Align the arrow with the middle of the price */
+/* Blue color for up arrow */
+.arrow.up {
+    color: blue;
 }
+
+
+/* Red color for down arrow */
+.arrow.down {
+    color: red; 
+}
+
+/* Optional: If you want to ensure the background of the arrow column stands out */
+.arrow-column {
+    background-color: #f0f0f0; /* Light grey background for arrow column */
+}
+
 
 /* Make sure the price text stays aligned */
 .price-cell span.price {
@@ -28,23 +38,8 @@
     vertical-align: middle; /* Align price with the arrow */
 }
 
-/* BELOW CODE ADDED 29/9/2024*
-/*Increase the size of the arrow only */
-.arrow {
-    font-size: 15px; /* Increase size of the arrow only */
-    font-weight: bold; /* Make the arrow bold (optional for more thickness) */
-    cursor: pointer; /* Change mouse cursor to pointer on hover */
-}
 
 
-/* Blue color for up arrow */
-.arrow.up {
-    color: blue; /* Color for down arrow */
-}
 
 
-/* Red color for down arrow */
-.arrow.down {
-    color: red; /* Color for up arrow */
-}
 
