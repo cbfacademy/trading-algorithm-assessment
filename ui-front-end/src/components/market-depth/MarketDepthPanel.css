@@ -1,0 +1,15 @@
+.MarketDepthPanel {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .MarketDepthPanel th, .MarketDepthPanel td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  .MarketDepthPanel th {
+    background-color: #f2f2f2;
+  }
+  
