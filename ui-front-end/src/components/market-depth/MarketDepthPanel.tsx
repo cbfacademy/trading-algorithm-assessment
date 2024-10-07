@@ -7,8 +7,7 @@ interface MarketDepthPanelProps {
   
   export const MarketDepthPanel = (props: MarketDepthPanelProps) => {
     const { data } = props;  // Destructure the data prop
-  console.log({ data });  // This will log test data to the console for inspection
-
+  
   return (
     <table className="MarketDepthPanel">
       <thead>
@@ -24,9 +23,9 @@ interface MarketDepthPanelProps {
       {data.map((row, index) => (
     <tr key={index}>
       <td>{row.level}</td>
-      <PriceCell price={row.bid} />
+      <td>{row.bid}</td>
       <td>{row.bidQuantity}</td>
-      <PriceCell price={row.offer} />
+      <td>{row.offer}</td>
       <td>{row.offerQuantity}</td>
     </tr>
         ))}

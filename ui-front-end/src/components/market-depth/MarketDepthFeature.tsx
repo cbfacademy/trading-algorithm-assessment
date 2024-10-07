@@ -1,7 +1,5 @@
-import { Placeholder } from "../placeholder";
-import { useMarketDepthData } from "./useMarketDepthData";
-import { schemas } from "../../data/algo-schemas";
-import {MarketDepthPanel} from './MarketDepthPanel';
+import React, { useState } from 'react';
+import { MarketDepthPanel } from './MarketDepthPanel';
 import "./MarketDepthPanel.css";
 
 
@@ -26,5 +24,54 @@ import { MarketDepthRow } from '../type';
  * TODO
  */
 export const MarketDepthFeature = () => {
-  return <MarketDepthPanel data={testData} />;
-};
+  const [showPanels, setShowPanels] = useState(true);
+
+  // Toggle panel visibility
+  const togglePanels = () => setShowPanels(!showPanels);
+
+
+  return (
+    <div>
+      {/* Market Depth Table */}
+      {showPanels && <MarketDepthPanel data={testData} />}
+
+      {/* Button to toggle visibility of the table */}
+      <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <button onClick={togglePanels}>
+        {showPanels ? 'Hide Market Depth Table' : 'Show Market Depth Table'}
+        </button>
+      </div>
+
+      {/* Red/Blue Panels */}
+      {showPanels && (
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+          <div
+            style={{
+              backgroundColor: 'red',
+              width: '200px',
+              height: '200px',
+              color: 'white',
+              textAlign: 'center',
+              padding: '10px'
+            }}
+          >
+            Bid Side
+          </div>
+          <div
+            style={{
+              backgroundColor: 'blue',
+              width: '200px',
+              height: '200px',
+              color: 'white',
+              textAlign: 'center',
+              padding: '10px',
+              marginLeft: '20px'
+            }}
+          >
+            Ask Side
+          </div>
+        </div>
+      )}
+    </div>
+  );
+          };
