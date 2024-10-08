@@ -16,6 +16,8 @@ import messages.order.Side;
 import messages.marketdata.MessageHeaderEncoder;
 import org.agrona.concurrent.UnsafeBuffer;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -25,6 +27,8 @@ import static org.mockito.Mockito.*;
 
 
 public class MyAlgoTest extends AbstractAlgoTest {
+
+    private static final Logger logger = LoggerFactory.getLogger(MyAlgoBackTest.class);
 
     @Override
     public AlgoLogic createAlgoLogic() {
@@ -69,6 +73,10 @@ public class MyAlgoTest extends AbstractAlgoTest {
 
         assertTrue(action instanceof CancelChildOrder);
         CancelChildOrder cancelAction = (CancelChildOrder) action;
+
+        // Calculate expected profit: (bestAskPrice - buyPrice) * quantity
+        long expectedProfit = (bestAskPrice - 100L) * 50L;
+        logger.info("Expected Profit: " + expectedProfit);
 
         assertNotNull(cancelAction.toString());
     }

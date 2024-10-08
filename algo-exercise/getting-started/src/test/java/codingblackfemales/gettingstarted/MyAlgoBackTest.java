@@ -69,11 +69,17 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals(95L, state.getChildOrders().get(0).getPrice()); // Verify the price of the buy order
 
         // Send a market tick that should trigger the cancel condition
-        //send(createMarketTick(115L, 125L)); // bidPrice=115L, askPrice=125L
+        //send(createMarketTick(115L, 125L)); // bidPrice=115L, askPrice=125L..........
 
         // Get the state of the order book after the market tick
         state = container.getState();
         logger.info("State after sending cancel condition: " + state);
+
+        // Calculate expected profit: (bestAskPrice - buyPrice) * quantity
+       long expectedProfit = (130L - 95L) * 50L;
+       logger.info("Expected Profit: " + expectedProfit);
+
+    assertEquals(1, state.getChildOrders().size());
 
         // Check that the buy order was canceled
         assertEquals(1, state.getChildOrders().size());
@@ -119,7 +125,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         send(createMarketTick(95L, 110L)); // bidPrice=95L, askPrice=110L
         assertEquals(1, container.getState().getChildOrders().size());
 
-        // Second tick: Above SELL_THRESHOLD, should cancel the buy order
+        // Second tick: Above SELL_THRESHOLD, should cancel the buy order..............
         //send(createMarketTick(115L, 125L)); // bidPrice=115L, askPrice=125L
         //assertEquals(0, container.getState().getActiveChildOrders().size());
 
