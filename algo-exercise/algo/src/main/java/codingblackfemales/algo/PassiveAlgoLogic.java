@@ -24,7 +24,7 @@ public class PassiveAlgoLogic implements AlgoLogic{
 
         logger.info("[PASSIVEALGO] Algo Sees Book as:\n" + book);
 
-        final BidLevel nearTouch = state.getBidAt(0);
+        final BidLevel nearTouch = state.getBidAt(0); //fetches the best bid price / the highest price someone is willing to buy at)
 
         long quantity = 75;
         long price = nearTouch.price;
