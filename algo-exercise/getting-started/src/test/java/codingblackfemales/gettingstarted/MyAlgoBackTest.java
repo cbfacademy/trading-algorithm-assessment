@@ -1,6 +1,7 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
+import org.agrona.DirectBuffer;
 import org.junit.Test;
 
 /**
@@ -32,6 +33,11 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
         //when: market data moves towards us
         send(createTick2());
+        send(createTick3());
+        send(createTick2());
+        send(createTick());
+         send(createTickLowLiquidity());
+        send(createTickHighPrices());
 
         //then: get the state
         var state = container.getState();
@@ -41,5 +47,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //and: check that our algo state was updated to reflect our fills when the market data
         //assertEquals(225, filledQuantity);
     }
+
+
 
 }
