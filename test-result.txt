@@ -1,0 +1,45 @@
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Build Order:
+[INFO] 
+[INFO] CBF Parent                                                         [pom]
+[INFO] CBF Algos                                                          [pom]
+[INFO] oms                                                                [jar]
+[INFO] dictionary                                                         [jar]
+[INFO] sequencer                                                          [jar]
+[INFO] collection                                                         [jar]
+[INFO] algo                                                               [jar]
+[INFO] backtest                                                           [jar]
+[INFO] getting-started                                                    [jar]
+[INFO] CBF UI                                                             [jar]
+[INFO] 
+[INFO] ---------------------< codingblackfemales:parent >----------------------
+[INFO] Building CBF Parent 0.01-SNAPSHOT                                 [1/10]
+[INFO]   from pom.xml
+[INFO] --------------------------------[ pom ]---------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] Reactor Summary for CBF Parent 0.01-SNAPSHOT:
+[INFO] 
+[INFO] CBF Parent ......................................... FAILURE [  0.047 s]
+[INFO] CBF Algos .......................................... SKIPPED
+[INFO] oms ................................................ SKIPPED
+[INFO] dictionary ......................................... SKIPPED
+[INFO] sequencer .......................................... SKIPPED
+[INFO] collection ......................................... SKIPPED
+[INFO] algo ............................................... SKIPPED
+[INFO] backtest ........................................... SKIPPED
+[INFO] getting-started .................................... SKIPPED
+[INFO] CBF UI ............................................. SKIPPED
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  0.173 s
+[INFO] Finished at: 2024-09-04T11:40:01Z
+[INFO] ------------------------------------------------------------------------
+[ERROR] Unknown lifecycle phase "algo-exercise/backtest". You must specify a valid lifecycle phase or a goal in the format <plugin-prefix>:<goal> or <plugin-group-id>:<plugin-artifact-id>[:<plugin-version>]:<goal>. Available lifecycle phases are: validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy, pre-clean, clean, post-clean, pre-site, site, post-site, site-deploy. -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/LifecyclePhaseNotFoundException

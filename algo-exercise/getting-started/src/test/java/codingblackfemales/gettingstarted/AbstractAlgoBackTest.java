@@ -119,5 +119,73 @@ public abstract class AbstractAlgoBackTest extends SequencerTestCase {
         return directBuffer;
     }
 
+    protected UnsafeBuffer createTick3() {
+
+        final MessageHeaderEncoder headerEncoder = new MessageHeaderEncoder();
+        final BookUpdateEncoder encoder = new BookUpdateEncoder();
+
+        final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
+        final UnsafeBuffer directBuffer = new UnsafeBuffer(byteBuffer);
+
+        // Write the encoded output to the direct buffer
+        encoder.wrapAndApplyHeader(directBuffer, 0, headerEncoder);
+
+        // Set the fields to desired values
+        encoder.venue(Venue.XLON);
+        encoder.instrumentId(123L);
+        encoder.source(Source.STREAM);
+
+        // Create bid book with slightly higher prices, similar to the other ticks
+        encoder.bidBookCount(3)
+                .next().price(97L).size(100L)
+                .next().price(95L).size(200L)
+                .next().price(92L).size(300L);
+
+        // Create ask book with more aggressive prices (lower) to trigger sell order logic
+        encoder.askBookCount(4)
+                .next().price(90L).size(100L)  // Lower price than previous bestAskPrice
+                .next().price(91L).size(200L)
+                .next().price(95L).size(5000L)
+                .next().price(100L).size(5600L);
+
+        // Set the instrument status
+        encoder.instrumentStatus(InstrumentStatus.CONTINUOUS);
+
+        return directBuffer;
+    }
+
+    protected UnsafeBuffer createTick4() {
+
+        final MessageHeaderEncoder headerEncoder = new MessageHeaderEncoder();
+        final BookUpdateEncoder encoder = new BookUpdateEncoder();
+
+        final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
+        final UnsafeBuffer directBuffer = new UnsafeBuffer(byteBuffer);
+
+        // Write the encoded output to the direct buffer
+        encoder.wrapAndApplyHeader(directBuffer, 0, headerEncoder);
+
+        // Set the fields to desired values
+        encoder.venue(Venue.XLON);  // Exchange or market venue
+        encoder.instrumentId(123L);  // Unique instrument ID
+        encoder.source(Source.STREAM);  // Data source
+
+        // Create bid book with positive spread (lower bid prices compared to asks)
+        encoder.bidBookCount(3)
+                .next().price(98L).size(100L)   // Best bid price
+                .next().price(96L).size(200L)
+                .next().price(94L).size(300L);
+
+        // Create ask book with positive spread (higher ask prices compared to bids)
+        encoder.askBookCount(3)
+                .next().price(100L).size(100L)   // Best ask price
+                .next().price(102L).size(200L)
+                .next().price(105L).size(300L);
+
+        // Set the instrument status (assuming continuous trading session)
+        encoder.instrumentStatus(InstrumentStatus.CONTINUOUS);
+
+        return directBuffer;
+    }
 
 }

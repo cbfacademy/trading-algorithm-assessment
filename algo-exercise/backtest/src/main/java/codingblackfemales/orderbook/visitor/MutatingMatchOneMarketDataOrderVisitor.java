@@ -47,7 +47,7 @@ public class MutatingMatchOneMarketDataOrderVisitor implements OrderBookVisitor{
                 filledQuantity += fillQuantity;
                 level.setFirstOrder(order.remove());
                 if(order instanceof LimitOrderFlyweight){
-                    logger.info("Filled:" + fillQuantity + "@" + orderToMatch.getPrice());
+                    logger.info("Filled:" + fillQuantity + " @ " + orderToMatch.getPrice());
                     publishFill(fillQuantity, orderToMatch.getPrice(),(LimitOrderFlyweight) order);
                 }
             //if we can only take a nibble...
@@ -58,7 +58,7 @@ public class MutatingMatchOneMarketDataOrderVisitor implements OrderBookVisitor{
                 filledQuantity += fillQuantity;
                 order.setQuantity(remainingQty);
                 if(order instanceof LimitOrderFlyweight){
-                    logger.info("Filled:" + fillQuantity + "@" + orderToMatch.getPrice());
+                    logger.info("Filled:" + fillQuantity + " @ " + orderToMatch.getPrice());
                     publishFill(fillQuantity, orderToMatch.getPrice(), (LimitOrderFlyweight) order);
                 }
             }
@@ -72,7 +72,7 @@ public class MutatingMatchOneMarketDataOrderVisitor implements OrderBookVisitor{
     }
 
     private void publishFill(final long quantity, final long price, LimitOrderFlyweight orderFlyweight){
-        logger.info("[ORDERBOOK] Filled " + quantity + "@" + price + " for order:" + orderFlyweight);
+        logger.info("[ORDERBOOK] Filled " + quantity + " @ " + price + " for order:" + orderFlyweight);
         orderChannel.publishFill(quantity, price, orderFlyweight);
     }
 
