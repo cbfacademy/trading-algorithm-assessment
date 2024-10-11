@@ -36,7 +36,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         send(createTick3());
         send(createTick2());
         send(createTick());
-         send(createTickLowLiquidity());
+       send(createTickLowLiquidity());
         send(createTickHighPrices());
 
         //then: get the state
