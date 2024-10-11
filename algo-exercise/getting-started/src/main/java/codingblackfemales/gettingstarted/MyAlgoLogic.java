@@ -16,9 +16,9 @@ public class MyAlgoLogic implements AlgoLogic {
 
     private static final Logger logger = LoggerFactory.getLogger(MyAlgoLogic.class);
     private long currentTargetPrice = 100; // set initial target price to 100
+    private static final long SPREAD_THRESHOLD = 5; // spread threshold
+    private static final long PRICE_THRESHOLD = 3; // price movement threshold
 
-    //create order if the price is below x value
-    //cancel order if the price goes above x threshold
     @Override
     public Action evaluate(SimpleAlgoState state) {
 
@@ -35,42 +35,49 @@ public class MyAlgoLogic implements AlgoLogic {
             return NoAction.NoAction;
         }
 
-        // get current best ask price safely
-        final AskLevel nearTouch = state.getAskAt(0);  // best price on the ask side
-        if (nearTouch == null) {
-            logger.warn("[MYALGO] The best ask price is null, no action will be taken.");
+        // get current best ask and bid price safely
+        final AskLevel bestAskLevel = state.getAskAt(0);
+        final long bestBidPrice = state.getBidAt(0) != null ? state.getBidAt(0).price : 0;
+        if (bestAskLevel == null || bestBidPrice == 0) {
+            logger.warn("[MYALGO] Best ask or bid price is null, no action will be taken.");
             return NoAction.NoAction;
         }
 
-        long bestAskPrice = nearTouch.price;
+        long bestAskPrice = bestAskLevel.price;
         logger.info("[MYALGO] The best ask price is: £" + bestAskPrice);
+        logger.info("[MYALGO] The best bid price is: £" + bestBidPrice);
+
+        // calculate spread and check if it's within the acceptable range
+        long spread = bestAskPrice - bestBidPrice;
+        if (spread > SPREAD_THRESHOLD) {
+            logger.info("[MYALGO] Spread is too wide: £" + spread + ". No action taken.");
+            return NoAction.NoAction;
+        }
 
         // get active orders
         var activeOrders = state.getActiveChildOrders();
+        logger.info("[MYALGO] Active child orders: " + activeOrders.size());
 
-        // if less than 3 active orders exist, create more orders if the best ask price differs from the current target price (to avoid creating orders at the same price)
-        if (activeOrders.size() < 3 && bestAskPrice != currentTargetPrice) {
-            // check if there's still a remaining quantity available at the target price
-            if (state.getAskLevels() > 0 && state.getAskAt(0).price == currentTargetPrice) {
-                // Avoid creating a new order if there's already a remaining quantity at the same price
-                logger.info("[MYALGO] Order exists at the current target price: £" + currentTargetPrice + ". Skipping new order creation.");
-            } else {
-                currentTargetPrice = bestAskPrice; // Update current target price to best ask price
-                logger.info("[MYALGO] Creating new order @ new price: £" + bestAskPrice);
-                return new CreateChildOrder(Side.BUY, 80, bestAskPrice);
-            }
+        // if less than 6 active orders exist, create more orders if the best ask price differs from the current target price
+        if (activeOrders.size() < 6 && bestAskPrice != currentTargetPrice) {
+            currentTargetPrice = bestAskPrice; // Update current target price to best ask price
+            logger.info("[MYALGO] Creating new order @ new price: £" + bestAskPrice);
+            return new CreateChildOrder(Side.BUY, 80, bestAskPrice);
         }
-        // If active orders exist,evaluate whether it makes sense to cancel them depending on how the market has changed
+
+        // cancel orders if market has moved unfavorably based on the threshold
         if (!activeOrders.isEmpty()) {
-            var firstActiveOrder = activeOrders.stream().findFirst().get();
-            // If ask price drops below target price, cancel the existing order
-            if (bestAskPrice < currentTargetPrice) {
-                logger.info("[MYALGO] Market price has dropped below target. Cancelling order @ £" + currentTargetPrice);
-                return new CancelChildOrder(firstActiveOrder);
-            } else {
-                logger.info("[MYALGO] Best ask price has not dropped below target. No cancellation.");
+            for (var activeOrder : activeOrders) {
+                long orderPrice = activeOrder.getPrice();
+
+                // cancel the order if the price has moved by more than the PRICE_THRESHOLD
+                if (Math.abs(bestBidPrice - orderPrice) > PRICE_THRESHOLD) {
+                    logger.info("[MYALGO] Canceling order with price: £" + orderPrice + " because the price moved by more than the threshold.");
+                    return new CancelChildOrder(activeOrder);
+                }
             }
         }
-            return NoAction.NoAction;
-        }
+
+        return NoAction.NoAction;
     }
+}
