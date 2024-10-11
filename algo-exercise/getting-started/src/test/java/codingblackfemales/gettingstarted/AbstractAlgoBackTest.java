@@ -196,5 +196,32 @@ public abstract class AbstractAlgoBackTest extends SequencerTestCase {
 
         return directBuffer;
     }
+    protected UnsafeBuffer createTickWithTightSpread() {
+        final MessageHeaderEncoder headerEncoder = new MessageHeaderEncoder();
+        final BookUpdateEncoder encoder = new BookUpdateEncoder();
 
+        final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
+        final UnsafeBuffer directBuffer = new UnsafeBuffer(byteBuffer);
+
+        encoder.wrapAndApplyHeader(directBuffer, 0, headerEncoder);
+
+        encoder.venue(Venue.XLON);
+        encoder.instrumentId(123L);
+        encoder.source(Source.STREAM);
+
+        // tight spread: bid = 98, ask = 100 (spread = 2, which is within spread_threshold)
+        encoder.bidBookCount(3)
+                .next().price(98L).size(100L)
+                .next().price(97L).size(200L)
+                .next().price(95L).size(300L);
+
+        encoder.askBookCount(3)
+                .next().price(100L).size(101L)
+                .next().price(105L).size(200L)
+                .next().price(110L).size(300L);
+
+        encoder.instrumentStatus(InstrumentStatus.CONTINUOUS);
+
+        return directBuffer;
+    }
 }
