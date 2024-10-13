@@ -1,7 +1,11 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
+import messages.order.Side;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -24,12 +28,51 @@ public class MyAlgoTest extends AbstractAlgoTest {
 
 
     @Test
-    public void testDispatchThroughSequencer() throws Exception {
+    public void testAlgoNeverExceedsMaxOrderCount() throws Exception {
 
-        //create a sample market data tick....
-        send(createTick());
+        for (int i = 0; i <= 20; i++) { //as long as number of orders is below 20, create buy tick
 
-        //simple assert to check we had 3 orders created
-        //assertEquals(container.getState().getChildOrders().size(), 3);
+
+            send(createTick());
+        }
+
+        assertTrue(container.getState().getChildOrders().size() <= 20);
     }
-}
+
+    @Test
+    public void testAlgoCreatesBuyOrder() throws Exception {
+
+        for (int i = 0; i <= 6; i++) {
+            //create a sample market data tick....
+            send(createTick());
+        }
+        //simple assert to check we had 3 orders created
+        assertEquals(container.getState().getChildOrders().size(), 3);
+    }
+
+    @Test
+    public void testAlgoExecutesStopLoss() throws Exception {
+        //stop loss should do two things: cancel existing buy orders and sell any it might have immediately
+        //Using a for loop to avoid sending multiple ticks using a loop
+        for (int i = 0; i < 6; i++) {
+            send(createTickStopLoss());
+        }
+        //assertion that this order was canceled after buying
+        assertEquals(0, container.getState().getChildOrders().size());
+    }
+
+
+
+    /** @Test
+     public void testAlgoCreatesSellOrder() throws Exception {
+         for (int i = 0; i <= 6; i++) {
+             send(createTickSell());
+         }
+         assertEquals(3, container.getState().getChildOrders().stream()
+                 .filter(childOrder -> childOrder.getSide() == Side.SELL)
+                 .count());
+     } */
+
+
+    }
+
