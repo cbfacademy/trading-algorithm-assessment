@@ -90,14 +90,13 @@ public abstract class AbstractAlgoTest extends SequencerTestCase {
         // prices are dropping
         encoder.askBookCount(3)
                 .next().price(95L).size(150L)
-                .next().price(105L).size(180L)
-                .next().price(110L).size(5500L);
+                .next().price(100L).size(180L)
+                .next().price(105L).size(5500L);
 
         encoder.bidBookCount(3)
-                .next().price(94L).size(100L)
-                .next().price(90L).size(250L)
-                .next().price(82L).size(400L);
-
+                .next().price(90L).size(100L)
+                .next().price(85L).size(250L)
+                .next().price(80L).size(400L);
         encoder.instrumentStatus(InstrumentStatus.CONTINUOUS);
         encoder.source(Source.STREAM);
 
@@ -118,14 +117,14 @@ public abstract class AbstractAlgoTest extends SequencerTestCase {
 
         // prices are increasing
         encoder.askBookCount(3)
-                .next().price(110L).size(200L)
-                .next().price(115L).size(300L)
-                .next().price(120L).size(5000L);
+                .next().price(105L).size(200L)
+                .next().price(110L).size(300L)
+                .next().price(115L).size(5000L);
 
         encoder.bidBookCount(3)
-                .next().price(105L).size(100L)
-                .next().price(100L).size(250L)
-                .next().price(98L).size(300L);
+                .next().price(100L).size(100L)
+                .next().price(95L).size(250L)
+                .next().price(90L).size(300L);
 
         encoder.instrumentStatus(InstrumentStatus.CONTINUOUS);
         encoder.source(Source.STREAM);
@@ -183,6 +182,58 @@ public abstract class AbstractAlgoTest extends SequencerTestCase {
         return directBuffer;
     }
 
+    protected UnsafeBuffer createTickWithTightSpread() {
+        final MessageHeaderEncoder headerEncoder = new MessageHeaderEncoder();
+        final BookUpdateEncoder encoder = new BookUpdateEncoder();
 
+        final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
+        final UnsafeBuffer directBuffer = new UnsafeBuffer(byteBuffer);
 
+        encoder.wrapAndApplyHeader(directBuffer, 0, headerEncoder);
+
+        encoder.venue(Venue.XLON);
+        encoder.instrumentId(123L);
+        encoder.source(Source.STREAM);
+
+        // tight spread: bid = 97 // ask = 99 // spread = 2, which is within spread_thresh
+        encoder.bidBookCount(3)
+                .next().price(97L).size(100L)
+                .next().price(96L).size(200L)
+                .next().price(95L).size(300L);
+
+        encoder.askBookCount(3)
+                .next().price(99L).size(101L)
+                .next().price(105L).size(200L)
+                .next().price(110L).size(300L);
+
+        return directBuffer;
+    }
+    protected UnsafeBuffer createTickWithWideSpread() {
+        final MessageHeaderEncoder headerEncoder = new MessageHeaderEncoder();
+        final BookUpdateEncoder encoder = new BookUpdateEncoder();
+
+        final ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1024);
+        final UnsafeBuffer directBuffer = new UnsafeBuffer(byteBuffer);
+
+        encoder.wrapAndApplyHeader(directBuffer, 0, headerEncoder);
+
+        encoder.venue(Venue.XLON);
+        encoder.instrumentId(123L);
+        encoder.source(Source.STREAM);
+
+        // wide spread: bid = 90 // ask = 110 // spread = 20, which exceeds spread_thresh
+        encoder.bidBookCount(3)
+                .next().price(90L).size(100L)
+                .next().price(89L).size(200L)
+                .next().price(88L).size(300L);
+
+        encoder.askBookCount(3)
+                .next().price(110L).size(101L)
+                .next().price(115L).size(200L)
+                .next().price(120L).size(300L);
+
+        encoder.instrumentStatus(InstrumentStatus.CONTINUOUS);
+
+        return directBuffer;
+    }
 }
