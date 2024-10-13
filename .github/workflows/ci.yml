@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17'
+          distribution: 'temurin'
 
       # build the project using Maven wrapper and install dependencies
       - name: Build with Maven
