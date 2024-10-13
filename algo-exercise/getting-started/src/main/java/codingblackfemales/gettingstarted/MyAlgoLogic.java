@@ -47,6 +47,12 @@ public class MyAlgoLogic implements AlgoLogic {
         logger.info("[MYALGO] The best ask price is: £" + bestAskPrice);
         logger.info("[MYALGO] The best bid price is: £" + bestBidPrice);
 
+        // Check if there are fewer than 3 bids or asks - indicating low liquidity
+        if (state.getAskAt(2) == null || state.getBidAt(2) == null) {
+            logger.info("[MYALGO] Low liquidity detected (fewer than 3 bids or asks), therefore no action will be taken.");
+            return NoAction.NoAction;
+        }
+
         // calculate spread and check if it's within the acceptable range
         long spread = bestAskPrice - bestBidPrice;
         if (spread > SPREAD_THRESHOLD) {
