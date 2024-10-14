@@ -35,7 +35,6 @@ public class MyAlgoTest extends AbstractAlgoTest {
 
             send(createTick());
         }
-
         assertTrue(container.getState().getChildOrders().size() <= 20);
     }
 
@@ -47,7 +46,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
             send(createTick());
         }
         //simple assert to check we had 3 orders created
-        assertEquals(container.getState().getChildOrders().size(), 3);
+        assertEquals(3, container.getState().getChildOrders().size());
     }
 
     @Test
@@ -57,13 +56,13 @@ public class MyAlgoTest extends AbstractAlgoTest {
         for (int i = 0; i < 6; i++) {
             send(createTickStopLoss());
         }
-        //assertion that this order was canceled after buying
+        //assertion that this orderS was canceled after buying
         assertEquals(0, container.getState().getChildOrders().size());
     }
 
 
 
-    /** @Test
+     @Test
      public void testAlgoCreatesSellOrder() throws Exception {
          for (int i = 0; i <= 6; i++) {
              send(createTickSell());
@@ -71,7 +70,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
          assertEquals(3, container.getState().getChildOrders().stream()
                  .filter(childOrder -> childOrder.getSide() == Side.SELL)
                  .count());
-     } */
+     }
 
 
     }

@@ -3,6 +3,8 @@ package codingblackfemales.gettingstarted;
 import codingblackfemales.algo.AlgoLogic;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * This test plugs together all of the infrastructure, including the order book (which you can trade against)
  * and the market data feed.
@@ -24,22 +26,25 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
     @Test
     public void testExampleBackTest() throws Exception {
-        //create a sample market data tick....
-        send(createTick());
+        for (int i = 0; i <= 6; i++) {
 
-        //ADD asserts when you have implemented your algo logic
-        //assertEquals(container.getState().getChildOrders().size(), 3);
+            //create a sample market data tick....
+            send(createTick());
 
-        //when: market data moves towards us
-        send(createTick2());
+            //ADD asserts when you have implemented your algo logic
+            assertEquals(3, container.getState().getChildOrders().size());
 
-        //then: get the state
-        var state = container.getState();
+            //when: market data moves towards us
+            send(createTick2());
 
-        //Check things like filled quantity, cancelled order count etc....
-        //long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
-        //and: check that our algo state was updated to reflect our fills when the market data
-        //assertEquals(225, filledQuantity);
+            //then: get the state
+            var state = container.getState();
+
+            //Check things like filled quantity, cancelled order count etc....
+            //long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
+            //and: check that our algo state was updated to reflect our fills when the market data
+            //assertEquals(225, filledQuantity);
+        }
+
     }
-
 }
