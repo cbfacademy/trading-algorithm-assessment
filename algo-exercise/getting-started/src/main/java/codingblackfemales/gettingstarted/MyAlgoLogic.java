@@ -49,7 +49,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
         }
 
-        // Calculate SMA
+        // Calculate SMA for my logic
         if (bidPricesOverTime.size() == maxPricesStored) {
             double sum = 0;
             for (long price : bidPricesOverTime) {
@@ -65,13 +65,13 @@ public class MyAlgoLogic implements AlgoLogic {
 
         final var activeOrders = state.getActiveChildOrders();
 
-// Combined check for max orders and bid levels
+// Combined check for max orders and bid levels (exit condition)
         if (state.getChildOrders().size() > maxOrderCount || state.getBidLevels() == 0) {
             return NoAction.NoAction;
 
         } else {
 
-            //cancel existing child order in case of bear market
+            //cancel action for existing child order in case of bear market
             if (activeOrders.size() > 0 && entryPrice <= stopLossPrice) {
                 logger.info("[MYALGO] BEARISH TREND DETECTED. Stop-loss triggered at " + stopLossPrice + ". Cancelling any existing child order.");
 
@@ -85,15 +85,15 @@ public class MyAlgoLogic implements AlgoLogic {
                 else{
                     return NoAction.NoAction;
                 }
-            } else {
+            } else { //buy action
                 if (entryPrice <= currentSMA && state.getChildOrders().size() < 3) {
                     logger.info("[MYALGO] Have:" + state.getChildOrders().size() + " children, buying: " + quantity + " @ " + entryPrice);
                     return new CreateChildOrder(Side.BUY, quantity, entryPrice); }
 
-
+//sell action
                     if (entryPrice >= currentSMA && state.getChildOrders().size() >= 3) {
                         logger.info("[MYALGO] Have: " + state.getChildOrders().size() + " children, selling: " + quantity + " @ " + bestAskPrice);
-                        return new CreateChildOrder(Side.SELL, quantity, entryPrice);
+                        return new CreateChildOrder(Side.SELL, quantity, bestAskPrice);
                     }
                 }
 
