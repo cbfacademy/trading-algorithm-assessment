@@ -30,7 +30,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
     @Test
     public void testAlgoNeverExceedsMaxOrderCount() throws Exception {
 
-        for (int i = 0; i <= 20; i++) { //as long as number of orders is below 20, create buy tick
+        for (int i = 0; i <= 25; i++) { //as long as number of orders is below 20, create buy tick
 
 
             send(createTick());
