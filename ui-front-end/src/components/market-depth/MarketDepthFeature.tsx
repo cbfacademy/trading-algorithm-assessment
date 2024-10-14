@@ -1,9 +1,12 @@
-import { Placeholder } from "../placeholder";
-//import { useMarketDepthData } from "./useMarketDepthData";
-//import { schemas } from "../../data/algo-schemas";
+// import { MarketDepthPanel } from "./MarketDepthPanel";
+// import { MarketDepthRow } from "./useMarketDepthData";
+// import { Placeholder } from "../placeholder";
+import { useMarketDepthData } from "./useMarketDepthData";
+import { schemas } from "../../data/algo-schemas";
+import { MarketDepthPanel } from "./MarketDepthPanel";
 
 // prettier-ignore
-// const testData: MarketDepthRow[] = [
+// const testdata: MarketDepthRow[] = [
 //   { symbolLevel:"1230", level: 0, bid: 1000, bidQuantity: 500, offer: 1010, offerQuantity: 700 },
 //   { symbolLevel:"1231", level: 1, bid: 990, bidQuantity: 700, offer: 1012, offerQuantity: 400 },
 //   { symbolLevel:"1232", level: 2, bid: 985, bidQuantity: 1200, offer: 1013, offerQuantity: 800 },
@@ -20,6 +23,7 @@ import { Placeholder } from "../placeholder";
  * TODO
  */
 export const MarketDepthFeature = () => {
-  // const data = useMarketDepthData(schemas.prices);
-  return <Placeholder />;
+  const data = useMarketDepthData(schemas.prices);
+  // return <Placeholder />;
+  return <MarketDepthPanel data={data} />;
 };

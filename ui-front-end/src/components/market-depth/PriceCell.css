@@ -1,0 +1,10 @@
+.price-cell .price-arrow {
+	font-weight: 600;
+}
+.price-cell.bid .percentage{
+	margin-right: 5px; /* Space between arrow and price for bid */
+  }
+  
+  .price-cell.offer .percentage {
+	margin-left: 5px; /* Space between price and arrow for ask */
+  }

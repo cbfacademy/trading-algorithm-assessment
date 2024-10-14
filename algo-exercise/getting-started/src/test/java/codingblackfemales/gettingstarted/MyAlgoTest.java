@@ -1,7 +1,13 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.sotw.OrderState;
+import codingblackfemales.sotw.SimpleAlgoState;
+import messages.order.Side;
+import org.junit.Before;
 import org.junit.Test;
+
+import static junit.framework.TestCase.assertEquals;
 
 
 /**
@@ -22,14 +28,90 @@ public class MyAlgoTest extends AbstractAlgoTest {
         return new MyAlgoLogic();
     }
 
+    @Before
+    public void setUp() throws Exception {
+        send(createTick());
+        send(createTick2());
+        send(createTick3());
+        send(createTick4());
+        send(createTick5());
+
+
+    }
 
     @Test
-    public void testDispatchThroughSequencer() throws Exception {
+    public void VWAPCalculation() throws Exception {//CHILD ORDDER AND ACRIVE CHILD ORDER
 
-        //create a sample market data tick....
-        send(createTick());
+        //when
+        var state = container.getState(); // Ensuring state is retrieved
+        MyAlgoLogic algoLogic = new MyAlgoLogic();//instance of algo logic to call the test on
+        long calculatedVWAP = algoLogic.calculateVWAP(state); // Capturing result of the calculation
 
-        //simple assert to check we had 3 orders created
-        //assertEquals(container.getState().getChildOrders().size(), 3);
+        // then
+
+        assertEquals("VWAP calculation is", calculatedVWAP, 0);
+
+    }
+
+    @Test
+    public void volumeImbalanceIndicator() throws Exception {
+
+        //when
+        var state = container.getState(); // Ensuring state is retrieved
+        MyAlgoLogic algoLogic = new MyAlgoLogic();
+        double calculatedVolumeImbalanceIndication = algoLogic.calculateVolumeImbalance(state); // Capturing result of the calculation
+
+        // then
+        assertEquals("Volume Imbalance calculation is", calculatedVolumeImbalanceIndication,0.9607843137254902);
+
+    }
+
+    @Test
+    public void ChildOrderSize() throws Exception {
+
+        //when
+        SimpleAlgoState state = container.getState();
+
+        //then
+        assertEquals(state.getChildOrders().size(), 7);
+    }
+
+    @Test
+    public void activeChildOrderSize() throws Exception {
+
+        //when
+        SimpleAlgoState state = container.getState();
+
+        //then
+        assertEquals(state.getActiveChildOrders().size(), 7);
+    }
+    @Test
+    public void buyOrderSize() throws Exception {
+
+        //when
+        SimpleAlgoState state = container.getState();
+
+        //then
+        assertEquals( state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList().size(), 2);
+    }
+    @Test
+    public void sellOrderSize() throws Exception {
+
+        //when
+        SimpleAlgoState state = container.getState();
+
+        //then
+        assertEquals( state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size(), 7);
+
+    }
+    @Test
+    public void cancelledOrderSize() throws Exception {
+
+        //when
+        SimpleAlgoState state = container.getState();
+
+        //then
+        assertEquals( state.getChildOrders().stream().filter(order -> order.getState() == OrderState.CANCELLED).toList().size(), 0);
+
     }
 }

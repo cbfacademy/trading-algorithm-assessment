@@ -1,7 +1,13 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.sotw.OrderState;
+import codingblackfemales.sotw.SimpleAlgoState;
+import messages.order.Side;
 import org.junit.Test;
+import codingblackfemales.sotw.ChildOrder;
+
+import static junit.framework.TestCase.assertEquals;
 
 /**
  * This test plugs together all of the infrastructure, including the order book (which you can trade against)
@@ -22,24 +28,131 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         return new MyAlgoLogic();
     }
 
+
     @Test
-    public void testExampleBackTest() throws Exception {
+    public void competitiveBuyOrderCreationTest() throws Exception {
         //create a sample market data tick....
-        send(createTick());
+        send(createTick());//initial tick
+        send(createTick2());//these two ticks allow the algorithm to meet the two filled child order requirement
+
+        SimpleAlgoState state = container.getState();
+        final var buyOrderCount = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList().size();
+        final var filledStateCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).toList().size();
 
         //ADD asserts when you have implemented your algo logic
-        //assertEquals(container.getState().getChildOrders().size(), 3);
+        assertEquals("Filled order size is 2",filledStateCount, 2);//asserts that the algorithm has reached the two filled order requirement and can now make competitive orders
+        assertEquals("active Buy order count is",buyOrderCount,3);//asserts the buy order size is 3 before tick
 
-        //when: market data moves towards us
-        send(createTick2());
+        //when: the market has an imbalance and increased pressure on the sell side a buy order is created
+
+        send(createTick3());//this tick tests the algorithms logic and reaction to volume imbalance (best bid volume =100, best ask volume = 200)
+        long newChildOrderCount = state.getChildOrders().size();
+        final var newBuyOrderCount = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList().size();
+//                 int bidCount = state.getBidLevels();
+//                 int askCount = state.getAskLevels();
 
         //then: get the state
-        var state = container.getState();
+//        assertEquals("orderbook bid count is",bidCount,1);////NOTE to JIALIN//(can we assert things like best bid and ask??
+//        assertEquals("orderbook ask count is",askCount,4);
+        assertEquals("active Buy order count has increased by 1",newBuyOrderCount,4);//asserts buy orders have increased by 1
 
-        //Check things like filled quantity, cancelled order count etc....
-        //long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
-        //and: check that our algo state was updated to reflect our fills when the market data
-        //assertEquals(225, filledQuantity);
     }
 
+    @Test
+    public void competitiveSellOrderCreationTest() throws Exception {
+        //create a sample market data tick....
+        send(createTick());//initial tick
+        send(createTick2());//these two ticks allows the algorithm to meet the minimum two filled child order requirement so any new orders will be created competitively
+
+        SimpleAlgoState state = container.getState();
+        final var sellOrderCount =  state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size();
+        final var filledStateCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).toList().size();
+
+        //ADD asserts when you have implemented your algo logic
+        assertEquals("Filled order size is 2",filledStateCount, 2);//asserts that the algorithm has reached the two filled order requirement and can now make competitive orders
+        assertEquals("active Sell order count is",sellOrderCount,0);//asserts the sell order size is 0 before tick
+
+        //when: the market has an imbalance with increased pressure on the buy side a sell order is created
+
+        send(createTick3());//this tick tests the algorithms logic and reaction to volume imbalance (best bid volume =400, best ask volume = 200)
+
+        final var newSellOrderCount = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size();
+        assertEquals("active Sell order count has increased by 1",newSellOrderCount,1);//asserts buy orders have increased by 1
+
+    }
+    @Test
+    public void  buyOrderCancellationTest() throws Exception {
+
+        SimpleAlgoState state = container.getState();
+
+        final var cancelledBuyOrdersCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.CANCELLED && order.getSide() == Side.BUY).count();
+
+        //ADD asserts when you have implemented your algo logic
+        assertEquals("Cancelled buy order count is 0",cancelledBuyOrdersCount, 0);//asserts that the cancelled buy order count is 0 before new tick
+
+        //when: the market is indicating volatility due to the bid ask spread going over 4.5%. orders must be cancelled
+        send(createTick());
+        send(createTick2());// the tickets simulate a volatile market in which my algorithm dictates that non-viable orders should be cancelled to ensure best prices.
+
+        final var  newCancelledBuyOrdersCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.CANCELLED && order.getSide() == Side.BUY).count();
+        //then: get the state
+        assertEquals("Cancelled buy order count has increased by 1 ",newCancelledBuyOrdersCount,1);//asserts that the cancelled buy order count is 1 after new tick
+
+    }
+    @Test
+    public void  sellOrderCancellationTest() throws Exception {
+        send(createTick());
+        send(createTick2());
+        send(createTick3());
+        send(createTick4());
+
+
+        SimpleAlgoState state = container.getState();
+
+        final var cancelledSellOrdersCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.CANCELLED && order.getSide() == Side.SELL).count();
+
+        //ADD asserts when you have implemented your algo logic
+        assertEquals("Cancelled sell order count is 0",cancelledSellOrdersCount, 0);//asserts that the cancelled sell order count is 0 before new tick
+
+        //when: the market is indicating volatility due to the bid ask spread going over 4.5%.  orders must be cancelled
+
+        send(createTick5());// the ticket simulates a volatile market in which my algorithm dictates that non-viable orders should be cancelled to ensure best prices.
+
+        final var  newCancelledSellOrdersCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.CANCELLED && order.getSide() == Side.SELL).count();
+        //then: get the state
+        assertEquals("cancelled sell order count has increased by 1",newCancelledSellOrdersCount,1);//asserts that the cancelled sell order count is 1 after new tick
+
+    }
+
+    @Test
+    public void filledStateQuantityUpdateTest() throws Exception {//REMOVE
+        //create a sample market data tick....
+        send(createTick());//initial ticks
+        send(createTick2());
+        send(createTick3());
+
+        SimpleAlgoState state = container.getState();
+        final var filledStateCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).toList().size();
+        final var filledQuantity = state.getChildOrders().stream().mapToLong(ChildOrder::getFilledQuantity).sum();
+
+
+        //ADD asserts when you have implemented your algo logic
+        assertEquals("Filled state order count is 2",filledStateCount, 2);//asserts that the algorithm has reached the two filled order requirement and can now make competitive orders
+        assertEquals("Filled order quantity is ",filledQuantity,602);//asserts the sell order size is 198 before new ticks
+
+
+        send(createTick4());//this ticks simulate conditions for orders to fill
+        send(createTick5());
+        final var newFilledStateCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).toList().size();
+        final var newFilledQuantity = state.getChildOrders().stream().mapToLong(ChildOrder::getFilledQuantity).sum();
+
+        assertEquals("New filled state order count is 4",newFilledStateCount, 4);//asserts that filled state count is updated when orders are filled
+        assertEquals("New filled order quantity is ",newFilledQuantity,712);//asserts the filled quantity is updated to reflect the volume of the new fill orders
+
+
+    }
 }
+
+
+
+
