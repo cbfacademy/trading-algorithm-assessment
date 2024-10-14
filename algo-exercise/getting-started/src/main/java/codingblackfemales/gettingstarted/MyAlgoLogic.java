@@ -18,114 +18,90 @@ import java.util.Queue;
 
 public class MyAlgoLogic implements AlgoLogic {
 
-    private static final Logger logger = LoggerFactory.getLogger(MyAlgoLogic.class);
+        private static final Logger logger = LoggerFactory.getLogger(MyAlgoLogic.class);
 
+        // Fixed entry price for stop-loss calculation
+        private long fixedEntryPrice = 0;
+        // Current best price for stop-loss comparison
+        private long currentBestPrice = 0;
 
-    //creating a queue to store the latest 5 bid prices to calculate the SMA:
-    private Queue<Long> bidPricesOverTime = new LinkedList<>();
+        private final Queue<Long> bidPricesOverTime = new LinkedList<>();
+        private static final int maxPricesStored = 5;  // Number of prices to calculate SMA
+        private double currentSMA = 0;
 
-    private static final int maxPricesStored = 5;
-    private double currentSMA = 0;
-    private double maxOrderCount = 20;
+        @Override
+        public Action evaluate(SimpleAlgoState state) {
 
+            var orderBookAsString = Util.orderBookToString(state);
+            logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
 
-    @Override
-    public Action evaluate(SimpleAlgoState state) {
-        var orderBookAsString = Util.orderBookToString(state);
-        logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
+            final BidLevel highestBidPrice = state.getBidAt(0);
+            final AskLevel highestAskPrice = state.getAskAt(0);
+            long quantity = 75;
+            long entryPrice = highestBidPrice.price;  // Current best price for the decision
+            double stopLossPrice = fixedEntryPrice * 0.98; // Based on the initial entry price
+            double profitTarget = fixedEntryPrice * 1.00033; // 0.033% profit target
 
-        final BidLevel highestBidPrice = state.getBidAt(0);
-        final AskLevel highestAskPrice = state.getAskAt(0);
-        long quantity = 75;
-        long entryPrice = highestBidPrice.price;
-        long bestAskPrice = highestAskPrice.price;
-        double stopLossPrice = entryPrice * 0.98;
-        double profitTarget = entryPrice * 1.00033; // Profit target is 0.033%
+            // Update current best price
+            currentBestPrice = entryPrice;
 
-        // First ensure algo updates the queue properly:
-        if (bidPricesOverTime.size() >= maxPricesStored) {
-            bidPricesOverTime.remove();
-        } else {
-            bidPricesOverTime.add(entryPrice);
+            logger.info("[ADDCANCELALGO] In Algo Logic....");
 
-        }
-
-        // Calculate SMA for my logic
-        if (bidPricesOverTime.size() == maxPricesStored) {
-            double sum = 0;
-            for (long price : bidPricesOverTime) {
-                sum += price;
+            // Update queue with new prices
+            if (bidPricesOverTime.size() >= maxPricesStored) {
+                bidPricesOverTime.remove();  // Remove the oldest price
             }
-            currentSMA = sum / maxPricesStored;
-            logger.info("[MYALGO] Calculated SMA for Algo Logic: " + currentSMA);
-        } else {
-            logger.info("[MYALGO] Not enough prices collected to calculate SMA. No further action taken.");
-            return new NoAction();
+            bidPricesOverTime.add(entryPrice); // Add the new price
 
-        }
-
-        final var activeOrders = state.getActiveChildOrders();
-
-// Combined check for max orders and bid levels (exit condition)
-        if (state.getChildOrders().size() > maxOrderCount || state.getBidLevels() == 0) {
-            return NoAction.NoAction;
-        } else {
-            //cancel action for existing child order in case of bear market
-            if (activeOrders.size() > 0 && entryPrice <= stopLossPrice) {
-                logger.info("[MYALGO] BEARISH TREND DETECTED. Stop-loss triggered at " + stopLossPrice + ". Cancelling any existing child order.");
-
-                final var option = activeOrders.stream().findFirst();
-
-                if (option.isPresent()) {
-                    var childOrder = option.get();
-                    logger.info("[ADDCANCELALGO] Cancelling order:" + childOrder);
-                    return new CancelChildOrder(childOrder);
-                } else {
-                    return NoAction.NoAction;
+            // Calculate SMA if enough data is available
+            if (bidPricesOverTime.size() == maxPricesStored) {
+                double sum = 0;
+                for (long price : bidPricesOverTime) {
+                    sum += price;
                 }
-            } else { //buy action
-                if (entryPrice <= currentSMA && state.getChildOrders().size() < 3) {
-                    logger.info("[MYALGO] Have:" + state.getChildOrders().size() + " children, buying: " + quantity + " @ " + entryPrice);
-                    return new CreateChildOrder(Side.BUY, quantity, entryPrice);
-                }
+                currentSMA = sum / maxPricesStored;
+                logger.info("[MYALGO] Calculated SMA: " + currentSMA);
+            } else {
+                logger.info("[MYALGO] Not enough prices to calculate SMA.");
+                return NoAction.NoAction;
+            }
 
-//sell action
-                if (currentSMA >= profitTarget && state.getChildOrders().size() >= 3) {
-                    logger.info("[MYALGO] Have: " + state.getChildOrders().size() + " children, selling: " + quantity + " @ " + bestAskPrice);
-                    return new CreateChildOrder(Side.SELL, quantity, bestAskPrice);
+            var totalOrderCount = state.getChildOrders().size();
+            final var activeOrders = state.getActiveChildOrders();
+            logger.info("[MYALGO] Active orders count: " + activeOrders.size());
+
+            // Exit condition: stop if total order count exceeds a certain limit or no bid levels
+            if (totalOrderCount >= 20 || state.getBidLevels() == 0) {
+                logger.info("[MYALGO] Exit condition met. No further actions.");
+                return NoAction.NoAction;
+            }
+
+            // Stop-loss logic: cancel order if the price falls below stop-loss level
+            if (!activeOrders.isEmpty()) {
+                var firstOrder = activeOrders.stream().findFirst().orElse(null);
+                if (firstOrder != null && currentBestPrice <= stopLossPrice) {
+                    logger.info("[MYALGO] Stop-loss triggered at " + stopLossPrice + ". Cancelling order: " + firstOrder);
+                    return new CancelChildOrder(firstOrder);
                 }
             }
 
+            // Buy order logic: place order if entry price is below SMA and no active orders
+            if (entryPrice <= currentSMA && activeOrders.size() < 3) {
+                logger.info("[MYALGO] Placing buy order for " + quantity + " @ " + entryPrice + " (Price <= SMA: " + currentSMA + ")");
+                // Set the fixed entry price when the first buy is placed
+                if (fixedEntryPrice == 0) {
+                    fixedEntryPrice = entryPrice;
+                }
+                return new CreateChildOrder(Side.BUY, quantity, entryPrice);
+            }
+
+            // Sell logic: place sell order if the profit target is reached
+            if (!activeOrders.isEmpty() && entryPrice > profitTarget) {
+                AskLevel topAsk = state.getAskAt(0);
+                logger.info("[MYALGO] Selling to take profit at " + entryPrice);
+                return new CreateChildOrder(Side.SELL, topAsk.getQuantity(), topAsk.getPrice());
+            }
+
             return NoAction.NoAction;
         }
-
-        // Default return if no action is triggered
-        //  return NoAction.NoAction;
-
-
     }
-
-}
-
-    /** Method for selling based on profit target
-    private Action createSellOrder(long bestBidPrice, SimpleAlgoState state) {
-        BidLevel level = state.getBidAt(0);
-
-        //it then collects the price and qty at that level:
-        long entryPrice = level.price;
-
-        double profitTarget = entryPrice * 1.00033; // Profit target is 0.033%
-
-        if (entryPrice > 0 && bestBidPrice >= profitTarget) {
-            AskLevel topAsk = state.getAskAt(0);
-
-            logger.info("[MYALGO] Profit target reached. Selling to take profit at " + bestBidPrice);
-            logger.info("[MYALGO] Order book after sell order looks like this:\n" + Util.orderBookToString(state));
-
-          //  entryPrice = 0; // Reset entry price after selling
-            return new CreateChildOrder(Side.SELL, topAsk.getQuantity(), topAsk.getPrice());
-        } else {
-            return NoAction.NoAction;
-        } */
-
-

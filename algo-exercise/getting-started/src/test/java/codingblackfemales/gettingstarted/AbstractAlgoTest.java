@@ -65,7 +65,7 @@ public abstract class AbstractAlgoTest extends SequencerTestCase {
                 .next().price(115L).size(5000L);
 
         encoder.bidBookCount(3)
-                .next().price(98L).size(100L)
+                .next().price(99L).size(100L) //trigger buy and exit condition i beg of u
                 .next().price(95L).size(200L)
                 .next().price(91L).size(300L);
 
@@ -96,7 +96,7 @@ public abstract class AbstractAlgoTest extends SequencerTestCase {
                 .next().price(115L).size(5000L);
 
         encoder.bidBookCount(3)
-                .next().price(80L).size(100L)
+                .next().price(80L).size(100L) //trigger stoploss please :[
                 .next().price(79L).size(200L)
                 .next().price(76L).size(300L);
 
