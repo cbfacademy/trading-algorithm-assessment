@@ -76,7 +76,7 @@ public class MyAlgoLogic implements AlgoLogic {
                 return NoAction.NoAction;
             }
 
-            // Stop-loss logic: cancel order if the price falls below stop-loss level
+            // Stop-loss logic: first, cancel order if the price falls below stop-loss level
             if (!activeOrders.isEmpty()) {
                 var firstOrder = activeOrders.stream().findFirst().orElse(null);
                 if (firstOrder != null && currentBestPrice <= stopLossPrice) {

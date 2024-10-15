@@ -11,6 +11,11 @@ import static org.junit.Assert.assertTrue;
 
 import codingblackfemales.sotw.ChildOrder;
 
+//how i understand the backtesting for trading algos is that they tie all the algo functions into one to show how
+// they would function togther to form a robust and profitable system that effectively handles past market conditions
+// so i have my original createTick triggering SMA calc and buy logic. after this, my sell logic kicks in
+// to make profit... then stop-loss to minimise loss during bear mkt as well as a check for my exit condition
+
 /**
  * This test plugs together all of the infrastructure, including the order book (which you can trade against)
  * and the market data feed.
@@ -63,6 +68,8 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
                     .reduce(Long::sum) // Sums up the filled quantities
                     .orElse(0L); // If no buy orders, it returns 0
             assertEquals("The filled buy quantity should be 225", 225, filledBuyQuantity);
+
+
 
             // Check for sell orders, expecting 2
             long sellOrdersCount = state.getChildOrders().stream()
