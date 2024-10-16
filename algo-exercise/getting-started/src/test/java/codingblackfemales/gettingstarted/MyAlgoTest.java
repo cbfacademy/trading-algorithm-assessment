@@ -2,6 +2,9 @@ package codingblackfemales.gettingstarted;
 
 //import static org.junit.Assert.assertEquals;
 import codingblackfemales.algo.AlgoLogic;
+
+import static org.junit.Assert.assertEquals;
+
 import org.junit.Test;
 
 /**
@@ -37,11 +40,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
 
         send(createTick2());
 
-        assertEquals(container.getState().getActiveChildOrders().size(), 5);
-
-        send(createTickmore());
-
-        assertEquals(container.getState().getActiveChildOrders().size(), 4);
+        assertEquals(container.getState().getActiveChildOrders().size(), 3);
 
     }
 

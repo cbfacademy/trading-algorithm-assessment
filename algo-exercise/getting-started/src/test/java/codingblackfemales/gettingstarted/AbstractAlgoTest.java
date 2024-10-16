@@ -75,7 +75,7 @@ public abstract class AbstractAlgoTest extends SequencerTestCase {
                 return directBuffer;
         }
 
-        protected UnsafeBuffer createTickmore() {
+        protected UnsafeBuffer createTick2() {
 
                 final MessageHeaderEncoder headerEncoder = new MessageHeaderEncoder();
                 final BookUpdateEncoder encoder = new BookUpdateEncoder();
@@ -88,22 +88,21 @@ public abstract class AbstractAlgoTest extends SequencerTestCase {
 
                 // set the fields to desired values
                 encoder.venue(Venue.XLON);
-                encoder.instrumentId(124L);
+                encoder.instrumentId(123L);
+                encoder.source(Source.STREAM);
+
+                encoder.bidBookCount(3)
+                                .next().price(95L).size(100L)
+                                .next().price(93L).size(200L)
+                                .next().price(91L).size(300L);
 
                 encoder.askBookCount(4)
-                                .next().price(100L).size(101L)
-                                .next().price(110L).size(200L)
-                                .next().price(115L).size(5000L)
-                                .next().price(120L).size(7000L);
-
-                encoder.bidBookCount(4)
-                                .next().price(98L).size(100L)
-                                .next().price(95L).size(200L)
-                                .next().price(91L).size(300L)
-                                .next().price(90L).size(400L);
+                                .next().price(98L).size(501L)
+                                .next().price(101L).size(200L)
+                                .next().price(110L).size(5000L)
+                                .next().price(119L).size(5600L);
 
                 encoder.instrumentStatus(InstrumentStatus.CONTINUOUS);
-                encoder.source(Source.STREAM);
 
                 return directBuffer;
         }
