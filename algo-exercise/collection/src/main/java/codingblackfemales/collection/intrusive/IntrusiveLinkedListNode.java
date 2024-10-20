@@ -78,9 +78,9 @@ public abstract class IntrusiveLinkedListNode<TYPEOF extends IntrusiveLinkedList
         setSize(size()+1);
     }
 
-    public void insert(TYPEOF current, TYPEOF next) {
-        this.next = current;
-        current.previous = next.previous;
+    public void insertAfter(TYPEOF self, TYPEOF current, TYPEOF next) {
+        self.next = current;
+        current.previous = self;
         current.next = next;
         next.previous = current;
         setSize(size()+1);
