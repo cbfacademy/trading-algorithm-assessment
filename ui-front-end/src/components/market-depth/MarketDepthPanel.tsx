@@ -1,5 +1,6 @@
 import { MarketDepthRow } from "./useMarketDepthData.ts";
 import "./MarketDepthPanel.css";
+import {PriceCell} from "./PriceCell.tsx";
 
 interface MarketDepthPanelProps {
     data: MarketDepthRow[];
@@ -32,20 +33,23 @@ export const MarketDepthPanel = (props: MarketDepthPanelProps) => {
 
                     {/* Bid Quantity as a visual bar */}
                     <td>
-                        <div className="bid-bar" style={{ width: `${row.bidQuantity / 100}%` }}>
-                            {row.bidQuantity}
+                        <div className="bid-bar" style={{width: `${Math.min(row.bidQuantity / 40, 100)}%`}}>
+                            <span>{row.bidQuantity}</span>
                         </div>
                     </td>
 
-                    {/* Bid Price */}
-                    <td>{row.bid}</td>
-
-                    {/* Ask Price */}
-                    <td>{row.offer}</td>
+                    {/* Pass "bid" as the type prop to PriceCell */}
+                    <td>
+                        <PriceCell price={row.bid} type="bid"/>
+                    </td>
+                    {/* Pass "ask" as the type prop to PriceCell */}
+                    <td>
+                        <PriceCell price={row.offer} type="ask"/>
+                    </td>
 
                     {/* Ask Quantity as a visual bar */}
                     <td>
-                        <div className="ask-bar" style={{ width: `${row.offerQuantity / 100}%` }}>
+                        <div className="ask-bar" style={{width: `${Math.min(row.offerQuantity / 30, 100)}%`}}>
                             {row.offerQuantity}
                         </div>
                     </td>
