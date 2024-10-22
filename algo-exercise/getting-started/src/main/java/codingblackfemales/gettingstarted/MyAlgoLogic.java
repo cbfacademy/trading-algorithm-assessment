@@ -17,6 +17,8 @@ public class MyAlgoLogic implements AlgoLogic {
     
     private int marketDataTickCount = 0;
     private int priceDifferentiator = 0;
+    private int quantityDifferentiator = 3;
+
 
     @Override
     public Action evaluate(SimpleAlgoState state) {
@@ -31,7 +33,10 @@ public class MyAlgoLogic implements AlgoLogic {
         if (state.getChildOrders().size() < 2) {
             int price = 97;
             priceDifferentiator += 1;
-            return new CreateChildOrder(Side.BUY, 100, price - 2 + priceDifferentiator);
+            int quantity = 100;
+            quantityDifferentiator -= 1;
+
+            return new CreateChildOrder(Side.BUY, (quantity * quantityDifferentiator), (price - 2 + priceDifferentiator));
         } else {
             return NoAction.NoAction;
         }
