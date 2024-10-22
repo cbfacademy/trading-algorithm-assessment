@@ -22,7 +22,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
         logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
 
-        if (state.getChildOrders().size() < 1) {
+        if (state.getChildOrders().size() < 2) {
             return new CreateChildOrder(Side.BUY, 100, 97);
         } else {
             return NoAction.NoAction;

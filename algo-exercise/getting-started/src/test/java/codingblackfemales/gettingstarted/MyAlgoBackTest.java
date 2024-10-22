@@ -1,6 +1,8 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.sotw.ChildOrder;
+
 import org.junit.Test;
 
 import messages.order.Side;
@@ -31,14 +33,23 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //create a sample market data tick....
         send(Tick1());
 
-        //ADD asserts when you have implemented your algo logic
         assertEquals("Creates a child order on buy side", Side.BUY, container.getState().getChildOrders().get(0).getSide());
+        assertEquals("Creates a second child order on buy side", Side.BUY, container.getState().getChildOrders().get(1).getSide());
+
+        //then: get the state
+        var state = container.getState();                
+                
+        // Check that our algo state was updated to reflect the total quantity of active child bid orders 
+        long totalQuantityOfActiveChildBidOrders = state.getActiveChildOrders().stream()
+            .filter(order -> order.getSide() == Side.BUY)
+            .map(ChildOrder::getQuantity).reduce(Long::sum).get();
+        assertEquals("Checks total quantity of active child BID orders is 200", 200, totalQuantityOfActiveChildBidOrders);
 
         //when: market data moves towards us
         // send(Tick2());
 
         //then: get the state
-        var state = container.getState();
+        // var state = container.getState();
 
         //Check things like filled quantity, cancelled order count etc....
         //long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
