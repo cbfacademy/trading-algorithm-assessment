@@ -33,8 +33,8 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //create a sample market data tick....
         send(Tick1());
 
-        assertEquals("Creates a child order on buy side", Side.BUY, container.getState().getChildOrders().get(0).getSide());
-        assertEquals("Creates a second child order on buy side", Side.BUY, container.getState().getChildOrders().get(1).getSide());
+        assertEquals("Check creates a child order on buy side", Side.BUY, container.getState().getChildOrders().get(0).getSide());
+        assertEquals("Check creates a second child order on buy side", Side.BUY, container.getState().getChildOrders().get(1).getSide());
 
         //then: get the state
         var state = container.getState();                
@@ -43,8 +43,10 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         long totalQuantityOfActiveChildBidOrders = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.BUY)
             .map(ChildOrder::getQuantity).reduce(Long::sum).get();
-        assertEquals("Checks total quantity of active child BID orders is 200", 200, totalQuantityOfActiveChildBidOrders);
+        assertEquals("Check total quantity of active child BID orders is 200", 200, totalQuantityOfActiveChildBidOrders);
 
+        assertEquals("Check first child bid order is at price 96", 96, container.getState().getChildOrders().get(0).getPrice());
+        assertEquals("Check second child bid order is at price 97", 97, container.getState().getChildOrders().get(1).getPrice());
         //when: market data moves towards us
         // send(Tick2());
 
