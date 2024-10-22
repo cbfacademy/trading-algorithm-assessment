@@ -1,10 +1,13 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.action.Action;
+import codingblackfemales.action.CreateChildOrder;
 import codingblackfemales.action.NoAction;
 import codingblackfemales.algo.AlgoLogic;
 import codingblackfemales.sotw.SimpleAlgoState;
 import codingblackfemales.util.Util;
+import messages.order.Side;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,12 +22,11 @@ public class MyAlgoLogic implements AlgoLogic {
 
         logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
 
-        /********
-         *
-         * Add your logic here....
-         *
-         */
+        if (state.getChildOrders().size() < 1) {
+            return new CreateChildOrder(Side.BUY, 100, 97);
+        } else {
+            return NoAction.NoAction;
+        }
 
-        return NoAction.NoAction;
     }
 }

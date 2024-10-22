@@ -3,6 +3,10 @@ package codingblackfemales.gettingstarted;
 import codingblackfemales.algo.AlgoLogic;
 import org.junit.Test;
 
+import messages.order.Side;
+import static org.junit.Assert.assertEquals;
+
+
 /**
  * This test plugs together all of the infrastructure, including the order book (which you can trade against)
  * and the market data feed.
@@ -25,13 +29,13 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     @Test
     public void testExampleBackTest() throws Exception {
         //create a sample market data tick....
-        send(createTick());
+        send(Tick1());
 
         //ADD asserts when you have implemented your algo logic
-        //assertEquals(container.getState().getChildOrders().size(), 3);
+        assertEquals("Creates a child order on buy side", Side.BUY, container.getState().getChildOrders().get(0).getSide());
 
         //when: market data moves towards us
-        send(createTick2());
+        // send(Tick2());
 
         //then: get the state
         var state = container.getState();
