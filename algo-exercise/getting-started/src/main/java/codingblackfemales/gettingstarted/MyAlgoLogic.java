@@ -17,7 +17,7 @@ public class MyAlgoLogic implements AlgoLogic {
     
     private int marketDataTickCount = 0;
     private int priceDifferentiator = 0;
-    private int quantityDifferentiator = 3;
+    private int quantityDifferentiator = 4;
 
 
     @Override
@@ -30,13 +30,12 @@ public class MyAlgoLogic implements AlgoLogic {
 
         logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
 
-        if (state.getChildOrders().size() < 2) {
-            int price = 97;
+        if (state.getChildOrders().size() < 3) {
+            int price = 98;
             priceDifferentiator += 1;
             int quantity = 100;
             quantityDifferentiator -= 1;
-
-            return new CreateChildOrder(Side.BUY, (quantity * quantityDifferentiator), (price - 2 + priceDifferentiator));
+            return new CreateChildOrder(Side.BUY, (quantity * quantityDifferentiator), (price - 3 + priceDifferentiator));
         } else {
             return NoAction.NoAction;
         }
