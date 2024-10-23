@@ -21,11 +21,11 @@ h2 {
 .MarketDepthPanel th.price-header,
 .MarketDepthPanel td.price-cell
 {
-  width: 80px; /* Adjust width as needed */
+  width: 80px; 
 }
 .MarketDepthPanel th.percentage-header,
 .MarketDepthPanel td.percentage-cell {
-  width: 110px; /* Adjust width as needed */
+  width: 110px; 
 }
 
 .MarketDepthPanel th.bid,td.bid{
@@ -107,5 +107,5 @@ h2 {
 .percentage-cell.bid {
   align-items: center;
    justify-content: flex-end;
-  padding-right: 10px; /* Add padding to the right */
+  padding-right: 25px; /* Add padding to the right */
 }

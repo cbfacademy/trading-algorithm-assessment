@@ -20,7 +20,7 @@ import static junit.framework.TestCase.assertEquals;
  * When you are comfortable you algo does what you expect, then you can move on to creating the MyAlgoBackTest.
  *
  */
-public class MyAlgoTest extends AbstractAlgoTest {
+public class MyAlgoTest extends AbstractAlgoTest { //Due to bugs and AbstractAlsoTest not being able to  test for filled orders which is an integral part of my algorithm I have moved the unit tests to MyAlgoBackTest
 
     @Override
     public AlgoLogic createAlgoLogic() {
@@ -40,16 +40,35 @@ public class MyAlgoTest extends AbstractAlgoTest {
     }
 
     @Test
-    public void VWAPCalculation() throws Exception {//CHILD ORDDER AND ACRIVE CHILD ORDER
+    public void ChildOrderSize() throws Exception {
+
+        //when
+        SimpleAlgoState state = container.getState();
+
+        //then
+        assertEquals(state.getChildOrders().size(), 6);
+    }
+
+    @Test
+    public void activeChildOrderSize() throws Exception {
+
+        //when
+        SimpleAlgoState state = container.getState();
+
+        //then
+        assertEquals(state.getActiveChildOrders().size(), 4);
+    }
+    @Test
+    public void VWAPCalculation() throws Exception {
 
         //when
         var state = container.getState(); // Ensuring state is retrieved
         MyAlgoLogic algoLogic = new MyAlgoLogic();//instance of algo logic to call the test on
-        long calculatedVWAP = algoLogic.calculateVWAP(state); // Capturing result of the calculation
+        double calculatedVWAP = algoLogic.calculateVWAP(state); // Capturing result of the calculation
 
         // then
 
-        assertEquals("VWAP calculation is", calculatedVWAP, 0);
+        assertEquals("VWAP calculation is", calculatedVWAP, 109);
 
     }
 
@@ -62,28 +81,8 @@ public class MyAlgoTest extends AbstractAlgoTest {
         double calculatedVolumeImbalanceIndication = algoLogic.calculateVolumeImbalance(state); // Capturing result of the calculation
 
         // then
-        assertEquals("Volume Imbalance calculation is", calculatedVolumeImbalanceIndication,0.9607843137254902);
+        assertEquals("Volume Imbalance calculation is", calculatedVolumeImbalanceIndication,0.42857142857142855);
 
-    }
-
-    @Test
-    public void ChildOrderSize() throws Exception {
-
-        //when
-        SimpleAlgoState state = container.getState();
-
-        //then
-        assertEquals(state.getChildOrders().size(), 7);
-    }
-
-    @Test
-    public void activeChildOrderSize() throws Exception {
-
-        //when
-        SimpleAlgoState state = container.getState();
-
-        //then
-        assertEquals(state.getActiveChildOrders().size(), 7);
     }
     @Test
     public void buyOrderSize() throws Exception {
@@ -92,7 +91,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals( state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList().size(), 2);
+        assertEquals( state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList().size(), 4);
     }
     @Test
     public void sellOrderSize() throws Exception {
@@ -101,7 +100,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals( state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size(), 7);
+        assertEquals( state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size(), 0);
 
     }
     @Test
@@ -111,7 +110,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals( state.getChildOrders().stream().filter(order -> order.getState() == OrderState.CANCELLED).toList().size(), 0);
+        assertEquals( state.getChildOrders().stream().filter(order -> order.getState() == OrderState.CANCELLED).toList().size(), 2);
 
     }
 }

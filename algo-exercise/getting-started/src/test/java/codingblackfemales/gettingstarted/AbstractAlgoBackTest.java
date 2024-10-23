@@ -134,8 +134,7 @@ public abstract class AbstractAlgoBackTest extends SequencerTestCase {
         encoder.venue(Venue.XLON);
         encoder.instrumentId(123L);
         encoder.source(Source.STREAM);
-
-        encoder.bidBookCount(3)
+     encoder.bidBookCount(3)
                 .next().price(95L).size(100L)
                 .next().price(93L).size(600L)
                 .next().price(91L).size(400L);

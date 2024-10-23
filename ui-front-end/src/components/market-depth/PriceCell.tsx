@@ -4,24 +4,31 @@ export interface PriceCellProps {
   price: number;
   isBid?: boolean;
   showPercentage?: boolean;
-  // New prop to conditionally show percentage difference
+  className?: string;
+  // defining interface
 }
 
-export const PriceCell = (props: PriceCellProps) => {
-  const lastValueRef = useRef(props.price);
-  const diff = props.price - lastValueRef.current;
-  const percentageDiff = (diff / lastValueRef.current) * 100;
+export const PriceCell = ({
+  price,
+  isBid,
+  showPercentage,
+  className,
+}: PriceCellProps) => {
+  const lastValueRef = useRef(price); //keepeing track of last price
+  const diff = price - lastValueRef.current;
+  const percentageDiff = (diff / lastValueRef.current) * 100; //calculating percentage difference
 
   useEffect(() => {
-    lastValueRef.current = props.price;
-  }, [props.price]);
+    lastValueRef.current = price;
+  }, [price]); //effect hook triggers when price changes
 
   const color = diff > 0 ? "green" : diff < 0 ? "red" : "black";
-  const formattedPrice = props.price.toFixed(2); // Format price to two decimal places
+  const formattedPrice = price.toFixed(2); // Format price to two decimal places//ternary operator fir colour
 
   return (
-    <td className={`price-cell ${props.isBid ? "bid" : "offer"}`}>
-      {props.showPercentage ? (
+    <td className={`price-cell ${isBid ? "bid" : "offer"} ${className}`}>
+      {/*template literal* bid /offer is referring the props data array*/}
+      {showPercentage ? (
         <span
           className="percentage"
           style={{
@@ -32,8 +39,9 @@ export const PriceCell = (props: PriceCellProps) => {
         </span>
       ) : (
         <>
-          {props.isBid ? (
+          {isBid ? (
             <span className="price-arrow" style={{ color }}>
+              {/* span containsers for text*/}
               {diff > 0 ? "▲" : diff < 0 ? "▼" : null}
               {formattedPrice}
             </span>
