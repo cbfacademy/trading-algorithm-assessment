@@ -232,6 +232,61 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals(4, myAlgoLogic.getFilledAndPartFilledChildBidOrdersList().get(0).getOrderId());
     }
 
+    @Test
+    public void testGetMethodForTotalFilledBidQuantityUpdates () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+        send(Tick2());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals(100, myAlgoLogic.getTotalFilledBidQuantity());
+    }
+
+    @Test
+    public void testGetMethodForTotalExpenditureUpdates () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+        send(Tick2());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals(9800, myAlgoLogic.getTotalExpenditure());
+    }
+
+    @Test
+    public void testGetMethodForAverageEntryPriceUpdates () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+        send(Tick2());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals(98, myAlgoLogic.getAverageEntryPrice(), delta);
+    }
+
+    @Test
+    public void testCreatesChildOrderOnSellSide () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+        send(Tick2());
+        assertEquals("Check creates a child order on sell side", Side.SELL, container.getState().getChildOrders().get(3).getSide());
+    }
+    
 }
         //when: market data moves towards us
         // send(Tick2());
