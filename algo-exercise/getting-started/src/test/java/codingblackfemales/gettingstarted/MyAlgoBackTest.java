@@ -115,6 +115,18 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     }
 
     @Test
+    public void testCreatesThreeChildOrdersOnTheBuySide() throws Exception {
+        //create a sample market data tick....
+        send(Tick1());
+
+        assertEquals("Check creates a child order on buy side", Side.BUY, container.getState().getChildOrders().get(0).getSide());
+        assertEquals("Check creates a second child order on buy side", Side.BUY, container.getState().getChildOrders().get(1).getSide());
+        assertEquals("Check creates a third child order on buy side", Side.BUY, container.getState().getChildOrders().get(2).getSide());
+        
+    }
+
+
+    @Test
     public void testGetsDataAboutActiveChildBidOrders() throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
@@ -132,18 +144,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     }
 
 
-    @Test
-    public void testCreatesThreeChildOrdersOnTheBuySide() throws Exception {
-        //create a sample market data tick....
-        send(Tick1());
 
-        assertEquals("Check creates a child order on buy side", Side.BUY, container.getState().getChildOrders().get(0).getSide());
-        assertEquals("Check creates a second child order on buy side", Side.BUY, container.getState().getChildOrders().get(1).getSide());
-        assertEquals("Check creates a third child order on buy side", Side.BUY, container.getState().getChildOrders().get(2).getSide());
-
-        //then: get the state
-        var state = container.getState();                
-    }
 
     @Test
     public void testTotalQuantityOfFirstThreeChildOrders() throws Exception {
@@ -193,6 +194,44 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("Third child bid order quantity should be 100", 100, container.getState().getChildOrders().get(2).getQuantity());
         
     }
+
+    @Test
+    public void testChildBidOrderId4ExecutesAfterTick2() throws Exception {
+    //create a sample market data tick....
+    send(Tick1());
+    send(Tick2());
+    //then: get the state
+    var state = container.getState(); 
+    
+    ChildOrder filledChildOrder = state.getChildOrders().stream()
+        .filter(order -> order.getFilledQuantity() > 0)
+        .findFirst()
+        .orElse(null);
+    
+    assertEquals(4, filledChildOrder.getOrderId());
+
+    long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
+    assertEquals(100, filledQuantity);
+
+}
+
+
+@Test
+    public void testChildBidOrderId4IsAddedToListOfFilledAndPartFilledChildBidOrders() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+        send(Tick2());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals(1, myAlgoLogic.getFilledAndPartFilledChildBidOrdersList().size());
+        assertEquals(4, myAlgoLogic.getFilledAndPartFilledChildBidOrdersList().get(0).getOrderId());
+    }
+
 }
         //when: market data moves towards us
         // send(Tick2());

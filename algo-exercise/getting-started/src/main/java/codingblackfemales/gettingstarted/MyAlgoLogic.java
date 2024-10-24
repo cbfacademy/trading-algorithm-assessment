@@ -380,6 +380,14 @@ public class MyAlgoLogic implements AlgoLogic {
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
+        if (allChildOrdersList.size() > 10) {
+            return NoAction.NoAction;
+        }
+
+        if (haveFilledBidOrders) {
+            return new CreateChildOrder(Side.SELL, getTotalFilledBidQuantity(), ((long) Math.ceil(getAverageEntryPrice() * 1.03)));
+        }
+
         if (allChildOrdersList.size() < 3 && tightSpread) {
             priceDifferentiator += 1;
             return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 3 + priceDifferentiator));
