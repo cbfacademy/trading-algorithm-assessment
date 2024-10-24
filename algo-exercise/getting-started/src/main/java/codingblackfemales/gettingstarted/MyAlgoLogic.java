@@ -4,6 +4,7 @@ import codingblackfemales.action.Action;
 import codingblackfemales.action.CreateChildOrder;
 import codingblackfemales.action.NoAction;
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.sotw.ChildOrder;
 import codingblackfemales.sotw.SimpleAlgoState;
 import codingblackfemales.sotw.marketdata.AbstractLevel;
 import codingblackfemales.util.Util;
@@ -136,6 +137,7 @@ public class MyAlgoLogic implements AlgoLogic {
         return relativeSpreadInCurrentTick;
     }
 
+    // booleans for analysing the spread
     private boolean tightSpread = false;
     private boolean wideSpread = false;
 
@@ -167,8 +169,17 @@ public class MyAlgoLogic implements AlgoLogic {
 
     // DATA ABOUT MY ALGO'S CHILD ORDERS
 
+    // list of all child orders including active, inactive, filled and cancelled
+    private List<ChildOrder> allChildOrdersList = new ArrayList<>();
+    public List<ChildOrder> getAllChildOrdersList() {
+        return allChildOrdersList;
+    }
+
     // BUY SIDE 
+
+
     private long childBidOrderQuantity;
+    private long totalExpenditure;
 
     private void setChildBidOrderQuantity() {
         childBidOrderQuantity = 100; // initial amount, then after trades execute, set to 10% of all filled orders for POV limit
@@ -177,6 +188,7 @@ public class MyAlgoLogic implements AlgoLogic {
     public long getChildBidOrderQuantity() {
         return childBidOrderQuantity;
     }
+
 
 
     @Override
@@ -242,14 +254,19 @@ public class MyAlgoLogic implements AlgoLogic {
         };
     
 
+        // UPDATE DATA ABOUT MY ALGO'S CHILD ORDERS
+
+        // update list of all child orders
+        allChildOrdersList = state.getChildOrders();
+
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
-        if (state.getChildOrders().size() < 3 && tightSpread) {
+        if (allChildOrdersList.size() < 3 && tightSpread) {
             priceDifferentiator += 1;
             return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 3 + priceDifferentiator));
         
         // if spread is wide, place a buy order bid above best bid to narrow the spread and (hopefully!) prompt trading
-        } else if (state.getChildOrders().size() < 3 && wideSpread) {
+        } else if (allChildOrdersList.size() < 3 && wideSpread) {
             priceDifferentiator += 1;
             return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick() - 2 + priceDifferentiator));
 
