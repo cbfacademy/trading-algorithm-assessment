@@ -11,7 +11,10 @@ import codingblackfemales.util.Util;
 import messages.order.Side;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -167,16 +170,8 @@ public class MyAlgoLogic implements AlgoLogic {
     }
 
 
-    // DATA ABOUT MY ALGO'S CHILD ORDERS
-
-    // list of all child orders including active, inactive, filled and cancelled
-    private List<ChildOrder> allChildOrdersList = new ArrayList<>();
-    public List<ChildOrder> getAllChildOrdersList() {
-        return allChildOrdersList;
-    }
-
-    // BUY SIDE 
-
+    
+    // Variables to set and get child order quantities and prices based on analysis
 
     private long childBidOrderQuantity;
     private long totalExpenditure;
@@ -189,6 +184,53 @@ public class MyAlgoLogic implements AlgoLogic {
         return childBidOrderQuantity;
     }
 
+
+    // DATA ABOUT MY ALGO'S CHILD ORDERS
+
+    // list of all child orders including active, inactive, filled and cancelled
+    private List<ChildOrder> allChildOrdersList = new ArrayList<>();
+    public List<ChildOrder> getAllChildOrdersList() {
+        return allChildOrdersList;
+    }
+
+    // BUY SIDE 
+    // filtered lists of child orders - BUY SIDE
+    // ACTIVE CHILD BID ORDERS
+    private List<ChildOrder> activeChildBidOrdersList = new ArrayList();
+    private List<String> activeChildBidOrdersToStringList= new ArrayList<>(); //  for logging
+    private boolean haveActiveBidOrders = false;
+    private ChildOrder activeChildBidOrderWithLowestPrice = null;
+    private ChildOrder activeChildBidOrderWithHighestPrice = null;
+
+    public List<ChildOrder> getActiveChildBidOrdersList() {
+        return activeChildBidOrdersList;
+    }
+
+    public List<String> getActiveChildBidOrdersToStringList() { // for logging
+        return activeChildBidOrdersToStringList;
+    }
+
+    public boolean getHaveActiveBidOrders() {
+        return haveActiveBidOrders;
+    }
+
+    public ChildOrder getActiveChildBidOrderWithLowestPrice() {
+        return activeChildBidOrderWithLowestPrice;
+    }
+
+
+    public ChildOrder getActiveChildBidOrderWithHighestPrice() {
+        return activeChildBidOrderWithHighestPrice;
+    }
+
+
+    // FILLED CHILD BID ORDERS
+    // HashSet to prevent duplication in list of filled and part filled orders list
+    private Set<ChildOrder> bidOrdersMarkedAsFilledOrPartFilled = new HashSet<>();
+    private List<ChildOrder> filledAndPartFilledChildBidOrdersList = new ArrayList();
+    private List<String> filledAndPartFilledChildBidOrdersListToString = new ArrayList(); // for logginG
+    private boolean haveFilledBidOrders = false;
+    private long totalFilledBidQuantity;
 
 
     @Override
@@ -258,6 +300,25 @@ public class MyAlgoLogic implements AlgoLogic {
 
         // update list of all child orders
         allChildOrdersList = state.getChildOrders();
+
+        // Update list of active child bid orders
+        activeChildBidOrdersToStringList.clear();  // for logging
+        activeChildBidOrdersList = state.getActiveChildOrders().stream()
+            .filter(order -> order.getSide() == Side.BUY)
+            .peek(order -> activeChildBidOrdersToStringList
+            .add("ACTIVE CHILD BID Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "]"))
+            .collect(Collectors.toList());
+
+        // if have active child BID orders, update the bids with the lowest and highest price
+        if (!activeChildBidOrdersList.isEmpty()) {
+            haveActiveBidOrders = true;
+            activeChildBidOrderWithLowestPrice = activeChildBidOrdersList.stream()
+                .min((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
+                .orElse(null);  // handle the case when min() returns an empty Optional
+            activeChildBidOrderWithHighestPrice = activeChildBidOrdersList.stream()
+                .max((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
+                .orElse(null);  // handle the case when min() returns an empty Optional
+            }
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 

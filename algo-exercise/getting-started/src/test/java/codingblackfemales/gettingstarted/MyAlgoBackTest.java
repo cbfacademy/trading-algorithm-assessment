@@ -63,7 +63,15 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("testing the method: getTheSpreadInCurrentTick()", 2, myAlgoLogic.getTheSpreadInCurrentTick());
         assertEquals("testing the method: getMidPriceInCurrentTick()", 99, myAlgoLogic.getMidPriceInCurrentTick(), delta);
         assertEquals("testing the method: getRelativeSpreadInCurrentTick()", 2, myAlgoLogic.getRelativeSpreadInCurrentTick(), delta);
+        
+        assertEquals("testing the method: getActiveChildBidOrdersToStringList()", "[ACTIVE CHILD BID Id:2 [100@96], ACTIVE CHILD BID Id:3 [100@97], ACTIVE CHILD BID Id:4 [100@98]]", myAlgoLogic.getActiveChildBidOrdersToStringList().toString());
+        assertEquals("testing the method: getActiveChildBidOrderWithLowestPrice().getPrice()", 96, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getPrice());
+        assertEquals("testing the method: getActiveChildBidOrderWithHighestPrice().getPrice()", 98, myAlgoLogic.getActiveChildBidOrderWithHighestPrice().getPrice());
+        
+        assertEquals("testing the method: getHaveActiveBidOrders()", true, myAlgoLogic.getHaveActiveBidOrders());
 
+                
+        
 
         // more asserts after a 2nd tick to see above update
     }
@@ -95,6 +103,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("Check second child bid order quantity is 100", 100, container.getState().getChildOrders().get(1).getQuantity());
         assertEquals("Check third child bid order quantity is 100", 100, container.getState().getChildOrders().get(2).getQuantity());
 
+        
         //when: market data moves towards us
         // send(Tick2());
 
