@@ -63,8 +63,6 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertArrayEquals("Best bid prices should be 98, 97, 96, 95, 91", new Long[]{(long) 98, (long) 97, (long) 96, (long) 95, (long) 91}, myAlgoLogic.getPricesOfTopBidOrdersInCurrentTick().toArray(Long[]::new));
         assertArrayEquals("Best bid quantities should be 200, 100, 100, 200, 300", new Long[]{(long) 200, (long) 100, (long) 100, (long) 200, (long) 300}, myAlgoLogic.getQuantitiesOfTopBidOrdersInCurrentTick().toArray(Long[]::new));
         assertEquals("Total quantity of best bids should be 900", 900, myAlgoLogic.getTotalQuantityOfBidOrdersInCurrentTick()); // 600 from original orderbook + 200 placed by MyAlgoLogic
-        
-
     }
 
     @Test
@@ -117,7 +115,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     }
 
     @Test
-    public void testGetsActiveChildBidOrders() throws Exception {
+    public void testGetsDataAboutActiveChildBidOrders() throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
         // //create a sample market data tick....
@@ -131,16 +129,11 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("Price of active child bid order with the lowest price should be 96", 96, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getPrice());
         assertEquals("Price of active child bid order with the highest price should be 98", 98, myAlgoLogic.getActiveChildBidOrderWithHighestPrice().getPrice());
         assertEquals("getHaveActiveBidOrders() should evaluate to true", true, myAlgoLogic.getHaveActiveBidOrders());
-
-                
-        
-
-        // more asserts after a 2nd tick to see above update
     }
 
 
     @Test
-    public void Test() throws Exception {
+    public void testCreatesThreeChildOrdersOnTheBuySide() throws Exception {
         //create a sample market data tick....
         send(Tick1());
 
@@ -150,22 +143,57 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
         //then: get the state
         var state = container.getState();                
-                
+    }
+
+    @Test
+    public void testTotalQuantityOfFirstThreeChildOrders() throws Exception {
+        //create a sample market data tick....
+        send(Tick1());
+         //then: get the state
+        var state = container.getState(); 
+
         // Check that our algo state was updated to reflect the total quantity of active child bid orders 
         long totalQuantityOfActiveChildBidOrders = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.BUY)
             .map(ChildOrder::getQuantity).reduce(Long::sum).get();
         assertEquals("Check total quantity of active child BID orders is 300", 300, totalQuantityOfActiveChildBidOrders);
+    }
 
-        assertEquals("Check first child bid order price is 96", 96, container.getState().getChildOrders().get(0).getPrice());
-        assertEquals("Check second child bid order price is 97", 97, container.getState().getChildOrders().get(1).getPrice());
-        assertEquals("Check third child bid order price is 98", 98, container.getState().getChildOrders().get(2).getPrice());
-
-        assertEquals("Check first child bid order quantity is 100", 100, container.getState().getChildOrders().get(0).getQuantity());
-        assertEquals("Check second child bid order quantity is 100", 100, container.getState().getChildOrders().get(1).getQuantity());
-        assertEquals("Check third child bid order quantity is 100", 100, container.getState().getChildOrders().get(2).getQuantity());
-
+        @Test
+        public void testFirstChildBidOrderPriceAndQuantity() throws Exception {
+        //create a sample market data tick....
+        send(Tick1());
+    
+        //then: get the state
+        var state = container.getState();             
         
+        assertEquals("First child bid order price should be 96", 96, container.getState().getChildOrders().get(0).getPrice());
+        assertEquals("First child bid order quantity should be 100", 100, container.getState().getChildOrders().get(0).getQuantity());
+        }
+
+        @Test
+        public void testSecondChildBidOrderPriceAndQuantity() throws Exception {
+        //create a sample market data tick....
+        send(Tick1());
+    
+            //then: get the state
+            var state = container.getState();             
+        assertEquals("Second child bid order price should be 97", 97, container.getState().getChildOrders().get(1).getPrice());
+        assertEquals("Second child bid order quantity should be 100", 100, container.getState().getChildOrders().get(1).getQuantity());
+        }
+
+        @Test
+        public void testThirdChildBidOrderPriceAndQuantity() throws Exception {
+        //create a sample market data tick....
+        send(Tick1());
+    
+        //then: get the state
+        var state = container.getState(); 
+        assertEquals("Third child bid order price should be 98", 98, container.getState().getChildOrders().get(2).getPrice());
+        assertEquals("Third child bid order quantity should be 100", 100, container.getState().getChildOrders().get(2).getQuantity());
+        
+    }
+}
         //when: market data moves towards us
         // send(Tick2());
 
@@ -176,6 +204,3 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
         //and: check that our algo state was updated to reflect our fills when the market data
         //assertEquals(225, filledQuantity);
-    }
-
-}
