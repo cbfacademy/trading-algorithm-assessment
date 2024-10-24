@@ -136,7 +136,10 @@ public class MyAlgoLogic implements AlgoLogic {
         return relativeSpreadInCurrentTick;
     }
 
+    private boolean tightSpread = false;
+    private boolean wideSpread = false;
 
+ 
     // variable to cap items of data to analyse
     int MAX_ITEMS_OF_DATA = 10;
 
@@ -231,12 +234,25 @@ public class MyAlgoLogic implements AlgoLogic {
         midPriceInCurrentTick = (getBestAskPriceInCurrentTick() + getBestBidPriceInCurrentTick()) / 2;
         relativeSpreadInCurrentTick = Math.round((theSpreadInCurrentTick / midPriceInCurrentTick * 100) * 100 / 100); // rounded to 2dp
     
+        // ANALYSING THE SPREAD
+        if (getRelativeSpreadInCurrentTick() < 3) {
+            tightSpread = true;
+        } else {
+            wideSpread = true;
+        };
+    
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
-        if (state.getChildOrders().size() < 3) {
+        if (state.getChildOrders().size() < 3 && tightSpread) {
             priceDifferentiator += 1;
             return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 3 + priceDifferentiator));
+        
+        // if spread is wide, place a buy order bid above best bid to narrow the spread and (hopefully!) prompt trading
+        } else if (state.getChildOrders().size() < 3 && wideSpread) {
+            priceDifferentiator += 1;
+            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick() - 2 + priceDifferentiator));
+
         } else {
             return NoAction.NoAction;
         }
