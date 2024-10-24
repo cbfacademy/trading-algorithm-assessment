@@ -24,17 +24,20 @@ public class MyAlgoLogic implements AlgoLogic {
 
     // DATA ABOUT THE CURRENT MARKET TICK
 
-    // variables to store data from the current tick
+    // variables to store data from the current tick - BUY SIDE
     private AbstractLevel bestBidOrderInCurrentTick;
     private long bestBidPriceInCurrentTick;
+    private long bestBidQuantityInCurrentTick;
 
-    private long totalQuantityOfBidOrdersInCurrentTick; // from top 10 orders
+    private long totalQuantityOfBidOrdersInCurrentTick;
 
-    // lists to store data from multiple orders in the current tick
-     private List<Long> quantitiesOfTopBidOrdersInCurrentTick = new ArrayList<>(); // from top 10 ask orders
+    // lists to store data from (up to) top 10 price levels on BUY side in the current tick
+    private List<AbstractLevel> topBidOrdersInCurrentTick = new ArrayList<>();
+    private List<Long> pricesOfTopBidOrdersInCurrentTick = new ArrayList<>(); 
+    private List<Long> quantitiesOfTopBidOrdersInCurrentTick = new ArrayList<>(); 
 
 
-    // getters to obtain data from current tick
+    // getters to obtain data from current tick - BUY SIDE
     public AbstractLevel getBestBidOrderInCurrentTick() {
         return bestBidOrderInCurrentTick;
     }
@@ -43,12 +46,24 @@ public class MyAlgoLogic implements AlgoLogic {
         return bestBidPriceInCurrentTick;
     }
     
+    public long getBestBidQuantityInCurrentTick() {
+        return bestBidQuantityInCurrentTick;
+    }
 
-    public List<Long> getQuantitiesOfTopBidOrdersInCurrentTick() { // from (up to) the top 10 bid price levels
+
+    public List<AbstractLevel> getTopBidOrdersInCurrentTick() {
+        return topBidOrdersInCurrentTick;
+    }
+
+    public List<Long> getPricesOfTopBidOrdersInCurrentTick() { 
+        return pricesOfTopBidOrdersInCurrentTick;
+    }
+
+    public List<Long> getQuantitiesOfTopBidOrdersInCurrentTick() { 
         return quantitiesOfTopBidOrdersInCurrentTick;
     }
 
-    private long setTotalQuantityOfBidOrdersInCurrentTick() { // from (up to) the top 10 bid price levels
+    private long setTotalQuantityOfBidOrdersInCurrentTick() {
         return totalQuantityOfBidOrdersInCurrentTick = sumOfAllInAListOfLongs(getQuantitiesOfTopBidOrdersInCurrentTick());
     }
 
@@ -56,9 +71,77 @@ public class MyAlgoLogic implements AlgoLogic {
         return totalQuantityOfBidOrdersInCurrentTick;
     }
 
+
+    // variables to store data from the current tick - SELL SIDE
+    private AbstractLevel bestAskOrderInCurrentTick;
+    private long bestAskPriceInCurrentTick;
+    private long bestAskQuantityInCurrentTick;
+
+    private long totalQuantityOfAskOrdersInCurrentTick; // from up to top 10 price levels
+
+    // lists to store data from (up to) top 10 price levels on SELL side in the current tick
+    private List<AbstractLevel> topAskOrdersInCurrentTick = new ArrayList<>(); 
+    private List<Long> pricesOfTopAskOrdersInCurrentTick = new ArrayList<>(); 
+    private List<Long> quantitiesOfTopAskOrdersInCurrentTick = new ArrayList<>();
+
+    // getters to obtain data from current tick - SELL SIDE
+    public AbstractLevel getBestAskOrderInCurrentTick() { 
+        return bestAskOrderInCurrentTick;
+    }
+    
+    public long getBestAskPriceInCurrentTick() {
+        return bestAskPriceInCurrentTick;
+    }
+
+    public long getBestAskQuantityInCurrentTick() {
+        return bestAskQuantityInCurrentTick;
+    }
+
+    public List<AbstractLevel> getTopAskOrdersInCurrentTick() {
+        return topAskOrdersInCurrentTick;
+    }
+
+    public List<Long> getPricesOfTopAskOrdersInCurrentTick() { // top 10
+        return pricesOfTopAskOrdersInCurrentTick;
+    }
+
+    public List<Long> getQuantitiesOfTopAskOrdersInCurrentTick() { // top 10
+        return quantitiesOfTopAskOrdersInCurrentTick;
+    }
+
+    private long setTotalQuantityOfAskOrdersInCurrentTick() { // top 10
+        return totalQuantityOfAskOrdersInCurrentTick = sumOfAllInAListOfLongs(getQuantitiesOfTopAskOrdersInCurrentTick());
+    }
+
+    public long getTotalQuantityOfAskOrdersInCurrentTick() { // top 10
+        return totalQuantityOfAskOrdersInCurrentTick;
+    }
+
+
+    // variables to store data from the current tick - THE SPREAD AND MIDPRICE
+    private long theSpreadInCurrentTick;
+    private double midPriceInCurrentTick;
+    private double relativeSpreadInCurrentTick;
+
+    
+    public long getTheSpreadInCurrentTick() {
+        return theSpreadInCurrentTick;
+    }
+
+    public double getMidPriceInCurrentTick() {
+        return midPriceInCurrentTick;
+    }
+
+    public double getRelativeSpreadInCurrentTick() {
+        return relativeSpreadInCurrentTick;
+    }
+
+
     // variable to cap items of data to analyse
     int MAX_ITEMS_OF_DATA = 10;
 
+
+    // DATA GATHERING METHODS
 
     // method to populate lists of longs capped at 10 items
     private void addToAListOfLongs(List<Long> list, long num) {
@@ -72,6 +155,12 @@ public class MyAlgoLogic implements AlgoLogic {
     private long sumOfAllInAListOfLongs(List<Long> list) { 
         return list.stream().reduce(Long::sum).orElse(0L);
     }
+
+    // methods to populate lists of orders on both sides
+    private void addToAListOfOrders(List<AbstractLevel> listOfOrders, AbstractLevel order) {
+        listOfOrders.add(order);
+    }
+
 
     // DATA ABOUT MY ALGO'S CHILD ORDERS
 
@@ -97,21 +186,51 @@ public class MyAlgoLogic implements AlgoLogic {
 
         logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
 
-        // UPDATE DATA ABOUT CURRENT MARKET DATA TICK
+        // UPDATE DATA ABOUT CURRENT MARKET DATA TICK - BUY SIDE
         bestBidOrderInCurrentTick = state.getBidAt(0);
         bestBidPriceInCurrentTick = getBestBidOrderInCurrentTick().getPrice();
+        bestBidQuantityInCurrentTick = getBestBidOrderInCurrentTick().getQuantity();
+
 
         // Loop to populate lists of data about the top bid orders in the current tick
         int maxBidOrders = Math.min(state.getBidLevels(), MAX_ITEMS_OF_DATA); // up to a max of 10 bid orders
-        quantitiesOfTopBidOrdersInCurrentTick.clear();
+        getTopBidOrdersInCurrentTick().clear();
+        getPricesOfTopBidOrdersInCurrentTick().clear();
+        getQuantitiesOfTopBidOrdersInCurrentTick().clear();
         for (int i = 0; i < maxBidOrders; i++) {
             AbstractLevel bidOrder = state.getBidAt(i);
-            addToAListOfLongs(quantitiesOfTopBidOrdersInCurrentTick, bidOrder.quantity);
+            addToAListOfOrders(getTopBidOrdersInCurrentTick(), bidOrder);
+            addToAListOfLongs(getPricesOfTopBidOrdersInCurrentTick(), bidOrder.price);
+            addToAListOfLongs(getQuantitiesOfTopBidOrdersInCurrentTick(), bidOrder.quantity);
         }
 
         setTotalQuantityOfBidOrdersInCurrentTick();
         setChildBidOrderQuantity();
 
+        // UPDATE DATA ABOUT CURRENT MARKET DATA TICK - SELL SIDE
+        bestAskOrderInCurrentTick = state.getAskAt(0);
+        bestAskPriceInCurrentTick = getBestAskOrderInCurrentTick().getPrice();
+        bestAskQuantityInCurrentTick = getBestAskOrderInCurrentTick().getQuantity();
+
+        // Loop to populate lists of data about the top ask orders in the current tick
+        int maxAskOrders = Math.min(state.getAskLevels(), 10); // up to a max of 10 ask orders
+        getTopAskOrdersInCurrentTick().clear();
+        getPricesOfTopAskOrdersInCurrentTick().clear();
+        getQuantitiesOfTopAskOrdersInCurrentTick().clear();
+        for (int i = 0; i < maxAskOrders; i++) {
+            AbstractLevel askOrder = state.getAskAt(i);
+            addToAListOfOrders(getTopAskOrdersInCurrentTick(), askOrder);
+            addToAListOfLongs(getPricesOfTopAskOrdersInCurrentTick(), askOrder.price);
+            addToAListOfLongs(getQuantitiesOfTopAskOrdersInCurrentTick(), askOrder.quantity);
+        }
+
+        setTotalQuantityOfAskOrdersInCurrentTick();
+        
+        // UPDATE DATA ABOUT CURRENT MARKET DATA TICK - SPREAD AND MID PRICE
+        theSpreadInCurrentTick = getBestAskPriceInCurrentTick() - getBestBidPriceInCurrentTick();
+        midPriceInCurrentTick = (getBestAskPriceInCurrentTick() + getBestBidPriceInCurrentTick()) / 2;
+        relativeSpreadInCurrentTick = Math.round((theSpreadInCurrentTick / midPriceInCurrentTick * 100) * 100 / 100); // rounded to 2dp
+    
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
