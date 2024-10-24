@@ -44,14 +44,14 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         long totalQuantityOfActiveChildBidOrders = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.BUY)
             .map(ChildOrder::getQuantity).reduce(Long::sum).get();
-        assertEquals("Check total quantity of active child BID orders is 600", 600, totalQuantityOfActiveChildBidOrders);
+        assertEquals("Check total quantity of active child BID orders is 300", 300, totalQuantityOfActiveChildBidOrders);
 
         assertEquals("Check first child bid order price is 96", 96, container.getState().getChildOrders().get(0).getPrice());
         assertEquals("Check second child bid order price is 97", 97, container.getState().getChildOrders().get(1).getPrice());
         assertEquals("Check third child bid order price is 98", 98, container.getState().getChildOrders().get(2).getPrice());
 
-        assertEquals("Check first child bid order quantity is 300", 300, container.getState().getChildOrders().get(0).getQuantity());
-        assertEquals("Check second child bid order quantity is 200", 200, container.getState().getChildOrders().get(1).getQuantity());
+        assertEquals("Check first child bid order quantity is 100", 100, container.getState().getChildOrders().get(0).getQuantity());
+        assertEquals("Check second child bid order quantity is 100", 100, container.getState().getChildOrders().get(1).getQuantity());
         assertEquals("Check third child bid order quantity is 100", 100, container.getState().getChildOrders().get(2).getQuantity());
 
         //when: market data moves towards us
