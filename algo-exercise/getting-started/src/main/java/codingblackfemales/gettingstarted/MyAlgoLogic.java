@@ -228,7 +228,7 @@ public class MyAlgoLogic implements AlgoLogic {
     // HashSet to prevent duplication in list of filled and part filled orders list
     private Set<ChildOrder> bidOrdersMarkedAsFilledOrPartFilled = new HashSet<>();
     private List<ChildOrder> filledAndPartFilledChildBidOrdersList = new ArrayList();
-    private List<String> filledAndPartFilledChildBidOrdersListToString = new ArrayList(); // for logginG
+    private List<String> filledAndPartFilledChildBidOrdersListToString = new ArrayList(); // for logging
     private boolean haveFilledBidOrders = false;
     private long totalFilledBidQuantity;
 
@@ -260,19 +260,58 @@ public class MyAlgoLogic implements AlgoLogic {
     }
     
     
-    public long getTotalExpenditure() { //TODO test this method
+    public long getTotalExpenditure() {
         return totalExpenditure;
     }
 
     private void setAverageEntryPrice() {  
-        averageEntryPrice = getFilledAndPartFilledChildBidOrdersList().stream()
+        averageEntryPrice = (long) Math.ceil(getFilledAndPartFilledChildBidOrdersList().stream()
         .mapToLong(order -> order.getFilledQuantity() * order.getPrice())
-        .sum() / getTotalFilledBidQuantity();
+        .sum() / getTotalFilledBidQuantity());
     }
 
-    public double getAverageEntryPrice() {
+    public long getAverageEntryPrice() {
         return averageEntryPrice;
     }
+
+    // SELL SIDE 
+    // filtered lists of child orders - SELL SIDE
+    // ACTIVE CHILD ASK ORDERS
+    private List<ChildOrder> activeChildAskOrdersList = new ArrayList<>();
+    List<String> activeChildAskOrdersListToString = new ArrayList<>(); // for logging
+    private boolean haveActiveAskOrders = false;
+    private ChildOrder activeChildAskOrderWithHighestPrice = null;
+    private ChildOrder activeChildAskOrderWithLowestPrice = null;
+
+    public List<ChildOrder> getActiveChildAskOrdersList() {
+        return activeChildAskOrdersList;
+    }
+
+    public boolean getHaveActiveAskOrders() {
+        return haveActiveAskOrders;
+    }
+
+    private String activeChildAskOrderWithHighestPriceToString = ""; // for logging
+
+    public ChildOrder getActiveChildAskOrderWithHighestPrice() {
+        return activeChildAskOrderWithHighestPrice;
+    }
+
+    public ChildOrder getActiveChildAskOrderWithLowestPrice() {
+        return activeChildAskOrderWithLowestPrice;
+    }
+
+    private long targetChildAskOrderPrice;
+
+    private void setTargetChildAskOrderPrice() {
+        targetChildAskOrderPrice = (long) Math.ceil(getAverageEntryPrice() * 1.03);
+    }
+
+    public long getTargetChildAskOrderPrice() {
+        return targetChildAskOrderPrice;
+    }
+
+
 
     @Override
     public Action evaluate(SimpleAlgoState state) {
@@ -342,6 +381,8 @@ public class MyAlgoLogic implements AlgoLogic {
         // update list of all child orders
         allChildOrdersList = state.getChildOrders();
 
+        // UPDATE DATA ABOUT MY ALGO'S CHILD ORDERS - BUY SIDE
+
         // Update list of active child bid orders
         activeChildBidOrdersToStringList.clear();  // for logging
         activeChildBidOrdersList = state.getActiveChildOrders().stream()
@@ -376,7 +417,30 @@ public class MyAlgoLogic implements AlgoLogic {
             setTotalFilledBidQuantity(); // update total filled bid quantity 
             setTotalExpenditure();
             setAverageEntryPrice();
+            setTargetChildAskOrderPrice();
         }
+
+        // UPDATE DATA ABOUT MY ALGO'S CHILD ORDERS - SELL SIDE
+
+        // Update list of active child ASK orders
+        activeChildAskOrdersListToString.clear();  // TODO delete later - only for logging now
+        activeChildAskOrdersList = state.getActiveChildOrders().stream()
+            .filter(order -> order.getSide() == Side.SELL)
+            .peek(order -> activeChildAskOrdersListToString
+            .add("ACTIVE CHILD ASK Id:" + order.getOrderId() + "[" + order.getQuantity() + "@" + order.getPrice() + "]"))
+            .collect(Collectors.toList());
+
+        // if have active child ASK orders, update the ask with the highest and lowest price
+        if (!activeChildAskOrdersList.isEmpty()) {
+            haveActiveAskOrders = true;
+            activeChildAskOrderWithHighestPrice = activeChildAskOrdersList.stream()
+                .max((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
+                .orElse(null);  // handle the case when max() returns an empty Optional        
+            activeChildAskOrderWithLowestPrice = activeChildAskOrdersList.stream()
+                .min((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
+                .orElse(null);  // handle the case when max() returns an empty Optional
+            }
+
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
@@ -384,11 +448,11 @@ public class MyAlgoLogic implements AlgoLogic {
             return NoAction.NoAction;
         }
 
-        if (haveFilledBidOrders) {
-            return new CreateChildOrder(Side.SELL, getTotalFilledBidQuantity(), ((long) Math.ceil(getAverageEntryPrice() * 1.03)));
+        if (haveFilledBidOrders && getHaveActiveAskOrders() == false) {
+            return new CreateChildOrder(Side.SELL, getTotalFilledBidQuantity(), getTargetChildAskOrderPrice());
         }
 
-        if (allChildOrdersList.size() < 3 && tightSpread) {
+        if (allChildOrdersList.size() < 3 && getActiveChildAskOrdersList().size() < 1) {
             priceDifferentiator += 1;
             return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 3 + priceDifferentiator));
         
