@@ -174,7 +174,7 @@ public class MyAlgoLogic implements AlgoLogic {
     // Variables to set and get child order quantities and prices based on analysis
 
     private long childBidOrderQuantity;
-    private long totalExpenditure;
+
 
     private void setChildBidOrderQuantity() {
         childBidOrderQuantity = 100; // initial amount, then after trades execute, set to 10% of all filled orders for POV limit
@@ -232,6 +232,47 @@ public class MyAlgoLogic implements AlgoLogic {
     private boolean haveFilledBidOrders = false;
     private long totalFilledBidQuantity;
 
+    private long totalExpenditure;
+    private long averageEntryPrice;
+
+    public List<ChildOrder> getFilledAndPartFilledChildBidOrdersList() { 
+        return filledAndPartFilledChildBidOrdersList;
+    }
+
+    public List<String> getFilledAndPartFilledChildBidOrdersListToString() {
+        return filledAndPartFilledChildBidOrdersListToString;
+    }
+    
+    private void setTotalFilledBidQuantity() {
+        totalFilledBidQuantity = getFilledAndPartFilledChildBidOrdersList().stream()
+        .mapToLong(ChildOrder::getFilledQuantity)
+        .sum();
+    }
+
+    public long getTotalFilledBidQuantity() {
+        return totalFilledBidQuantity;
+    }
+
+    private void setTotalExpenditure() {
+        totalExpenditure = getFilledAndPartFilledChildBidOrdersList().stream()
+            .mapToLong(order -> (order.getFilledQuantity() * order.getPrice()))
+            .sum();
+    }
+    
+    
+    public long getTotalExpenditure() { //TODO test this method
+        return totalExpenditure;
+    }
+
+    private void setAverageEntryPrice() {  
+        averageEntryPrice = getFilledAndPartFilledChildBidOrdersList().stream()
+        .mapToLong(order -> order.getFilledQuantity() * order.getPrice())
+        .sum() / getTotalFilledBidQuantity();
+    }
+
+    public double getAverageEntryPrice() {
+        return averageEntryPrice;
+    }
 
     @Override
     public Action evaluate(SimpleAlgoState state) {
@@ -319,6 +360,23 @@ public class MyAlgoLogic implements AlgoLogic {
                 .max((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
                 .orElse(null);  // handle the case when min() returns an empty Optional
             }
+
+        // Update list of filled child BID orders
+        filledAndPartFilledChildBidOrdersList = state.getChildOrders().stream()
+            .filter(order -> order.getSide() == Side.BUY && order.getFilledQuantity() > 0)
+            .filter(order -> !bidOrdersMarkedAsFilledOrPartFilled.contains(order))  // Only add if not processed
+            .peek(order -> bidOrdersMarkedAsFilledOrPartFilled.add(order))  // Mark as processed
+            .peek(order-> filledAndPartFilledChildBidOrdersListToString // for logging
+            .add("FILL/PARTFILL BID Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "] filledQuantity: " + order.getFilledQuantity())) // TODO DELETE LATER URING DEVELOPMENT FOR BACK TESTS
+            .collect(Collectors.toList());
+
+        // if there are filled child BID Orders
+        if (!filledAndPartFilledChildBidOrdersList.isEmpty()) { 
+            haveFilledBidOrders = true;
+            setTotalFilledBidQuantity(); // update total filled bid quantity 
+            setTotalExpenditure();
+            setAverageEntryPrice();
+        }
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 

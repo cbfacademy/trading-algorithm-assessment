@@ -6,6 +6,8 @@ import codingblackfemales.sotw.ChildOrder;
 import org.junit.Test;
 
 import messages.order.Side;
+
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 
@@ -30,9 +32,8 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
     double delta = 0.0001;
 
-    // UNIT TESTING
     @Test
-    public void unitTest() throws Exception {
+    public void testGetsBestBidOrderInCurrentTick() throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
         // //create a sample market data tick....
@@ -42,33 +43,94 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state = container.getState();
 
         myAlgoLogic.evaluate(state);
-        assertEquals("testing the method: getBestBidOrderInCurrentTick()", "BID[200@98]", myAlgoLogic.getBestBidOrderInCurrentTick().toString()); // quantity = 100 from original orderbook + 100 placed by MyAlgoLogic
-        assertEquals("testing the method: getBestBidPriceInCurrentTick()", 98, myAlgoLogic.getBestBidPriceInCurrentTick());
-        assertEquals("testing the method: getBestBidQuantityInCurrentTick()", 200, myAlgoLogic.getBestBidQuantityInCurrentTick()); // 100 from original orderbook + 100 placed by MyAlgoLogic
+        assertEquals("Best bid price should be 98", 98, myAlgoLogic.getBestBidPriceInCurrentTick());
+        assertEquals("Best bid quantity should be 200", 200, myAlgoLogic.getBestBidQuantityInCurrentTick()); // 100 from original orderbook + 100 placed by MyAlgoLogic
+    }
+    
+    @Test
+    public void testGetsTopBidsOrdersInCurrentTick() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+
+        assertEquals("[BID[200@98], BID[100@97], BID[100@96], BID[200@95], BID[300@91]]", myAlgoLogic.getTopBidOrdersInCurrentTick().toString()); //
+        assertArrayEquals("Best bid prices should be 98, 97, 96, 95, 91", new Long[]{(long) 98, (long) 97, (long) 96, (long) 95, (long) 91}, myAlgoLogic.getPricesOfTopBidOrdersInCurrentTick().toArray(Long[]::new));
+        assertArrayEquals("Best bid quantities should be 200, 100, 100, 200, 300", new Long[]{(long) 200, (long) 100, (long) 100, (long) 200, (long) 300}, myAlgoLogic.getQuantitiesOfTopBidOrdersInCurrentTick().toArray(Long[]::new));
+        assertEquals("Total quantity of best bids should be 900", 900, myAlgoLogic.getTotalQuantityOfBidOrdersInCurrentTick()); // 600 from original orderbook + 200 placed by MyAlgoLogic
         
-        assertEquals("testing the method: getTopBidOrdersInCurrentTick()", "[BID[200@98], BID[100@97], BID[100@96], BID[200@95], BID[300@91]]", myAlgoLogic.getTopBidOrdersInCurrentTick().toString());
-        assertEquals("testing the method: getPricesOfTopBidOrdersInCurrentTick()", "[98, 97, 96, 95, 91]", myAlgoLogic.getPricesOfTopBidOrdersInCurrentTick().toString());
-        assertEquals("testing the method: getQuantitiesOfTopBidOrdersInCurrentTick()", "[200, 100, 100, 200, 300]", myAlgoLogic.getQuantitiesOfTopBidOrdersInCurrentTick().toString());
-        assertEquals("testing the method: getTotalQuantityOfBidOrdersInCurrentTick()", 900, myAlgoLogic.getTotalQuantityOfBidOrdersInCurrentTick()); // 600 from original orderbook + 200 placed by MyAlgoLogic
-        
-        assertEquals("testing the method: getBestAskOrderInCurrentTick()", "ASK[101@100]", myAlgoLogic.getBestAskOrderInCurrentTick().toString()); 
-        assertEquals("testing the method: getBestAskPriceInCurrentTick()", 100, myAlgoLogic.getBestAskPriceInCurrentTick());
-        assertEquals("testing the method: getBestAskQuantityInCurrentTick()", 101, myAlgoLogic.getBestAskQuantityInCurrentTick());
-        
+
+    }
+
+    @Test
+    public void testGetsBestAskOrderInCurrentTick() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals( "ASK[101@100]", myAlgoLogic.getBestAskOrderInCurrentTick().toString()); 
+        assertEquals("Best ask price should be 100", 100, myAlgoLogic.getBestAskPriceInCurrentTick());
+        assertEquals("Best ask quantity should be 98", 101, myAlgoLogic.getBestAskQuantityInCurrentTick());
+    }
+
+    @Test
+    public void testGetsTopAskOrdersInCurrentTick() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
         assertEquals("testing the method: getTopAskOrdersInCurrentTick()", "[ASK[101@100], ASK[200@110], ASK[5000@115], ASK[5600@119]]", myAlgoLogic.getTopAskOrdersInCurrentTick().toString());
-        assertEquals("testing the method: getPricesOfTopAskOrdersInCurrentTick()", "[100, 110, 115, 119]", myAlgoLogic.getPricesOfTopAskOrdersInCurrentTick().toString());
-        assertEquals("testing the method: getQuantitiesOfTopAskOrdersInCurrentTick()", "[101, 200, 5000, 5600]", myAlgoLogic.getQuantitiesOfTopAskOrdersInCurrentTick().toString());
-        assertEquals("testing the method: getTotalQuantityOfAskOrdersInCurrentTick()", 10901, myAlgoLogic.getTotalQuantityOfAskOrdersInCurrentTick());
-        
-        assertEquals("testing the method: getTheSpreadInCurrentTick()", 2, myAlgoLogic.getTheSpreadInCurrentTick());
-        assertEquals("testing the method: getMidPriceInCurrentTick()", 99, myAlgoLogic.getMidPriceInCurrentTick(), delta);
-        assertEquals("testing the method: getRelativeSpreadInCurrentTick()", 2, myAlgoLogic.getRelativeSpreadInCurrentTick(), delta);
-        
-        assertEquals("testing the method: getActiveChildBidOrdersToStringList()", "[ACTIVE CHILD BID Id:2 [100@96], ACTIVE CHILD BID Id:3 [100@97], ACTIVE CHILD BID Id:4 [100@98]]", myAlgoLogic.getActiveChildBidOrdersToStringList().toString());
-        assertEquals("testing the method: getActiveChildBidOrderWithLowestPrice().getPrice()", 96, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getPrice());
-        assertEquals("testing the method: getActiveChildBidOrderWithHighestPrice().getPrice()", 98, myAlgoLogic.getActiveChildBidOrderWithHighestPrice().getPrice());
-        
-        assertEquals("testing the method: getHaveActiveBidOrders()", true, myAlgoLogic.getHaveActiveBidOrders());
+        assertArrayEquals("Best ask prices should be 100, 110, 115, 119", new Long[]{(long) 100, (long) 110, (long) 115, (long) 119}, myAlgoLogic.getPricesOfTopAskOrdersInCurrentTick().toArray(Long[]::new));
+        assertArrayEquals("Best ask quantities should be 101, 200, 5000, 5600", new Long[]{(long) 101, (long) 200, (long) 5000, (long) 5600}, myAlgoLogic.getQuantitiesOfTopAskOrdersInCurrentTick().toArray(Long[]::new));
+        assertEquals("Total quantity of ask orders should be 10901", 10901, myAlgoLogic.getTotalQuantityOfAskOrdersInCurrentTick());
+    }
+
+    @Test
+    public void testGetsTheSpreadAndMidPriceInCurrentTick() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals("The spread should be 2", 2, myAlgoLogic.getTheSpreadInCurrentTick());
+        assertEquals("The mid price should be 99", 99, myAlgoLogic.getMidPriceInCurrentTick(), delta);
+        assertEquals("The relative spread should be 2", 2, myAlgoLogic.getRelativeSpreadInCurrentTick(), delta);
+    }
+
+    @Test
+    public void testGetsActiveChildBidOrders() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        // //create a sample market data tick....
+        send(Tick1());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals("List of child orders as strings", "[ACTIVE CHILD BID Id:2 [100@96], ACTIVE CHILD BID Id:3 [100@97], ACTIVE CHILD BID Id:4 [100@98]]", myAlgoLogic.getActiveChildBidOrdersToStringList().toString());
+        assertEquals("Price of active child bid order with the lowest price should be 96", 96, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getPrice());
+        assertEquals("Price of active child bid order with the highest price should be 98", 98, myAlgoLogic.getActiveChildBidOrderWithHighestPrice().getPrice());
+        assertEquals("getHaveActiveBidOrders() should evaluate to true", true, myAlgoLogic.getHaveActiveBidOrders());
 
                 
         
@@ -78,7 +140,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
 
     @Test
-    public void backTest() throws Exception {
+    public void Test() throws Exception {
         //create a sample market data tick....
         send(Tick1());
 
