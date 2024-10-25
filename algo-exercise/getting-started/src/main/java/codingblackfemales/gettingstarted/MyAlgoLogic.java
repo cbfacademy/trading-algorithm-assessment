@@ -235,6 +235,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
     private long totalExpenditure;
     private long averageEntryPrice;
+    private long numOfSharesOwned;
 
     public List<ChildOrder> getFilledAndPartFilledChildBidOrdersList() { 
         return filledAndPartFilledChildBidOrdersList;
@@ -302,6 +303,7 @@ public class MyAlgoLogic implements AlgoLogic {
         return activeChildAskOrderWithLowestPrice;
     }
 
+
     private long targetChildAskOrderPrice;
 
     private void setTargetChildAskOrderPrice() {
@@ -312,7 +314,60 @@ public class MyAlgoLogic implements AlgoLogic {
         return targetChildAskOrderPrice;
     }
 
+    // FILLED CHILD ASK ORDERS
+    // HashSet to prevent duplication in list of filled and part filled orders list
+    private Set<ChildOrder> askOrdersMarkedAsFilledOrPartFilled = new HashSet<>();
+    private List<ChildOrder> filledAndPartFilledChildAskOrdersList = new ArrayList<>();
+    List<String> filledAndPartFilledChildAskOrdersListToString = new ArrayList<>(); // for logging
+    private long totalFilledAskQuantity;
+    private boolean haveFilledAskOrders = false;
+    private long totalRevenue;
 
+    public boolean getHaveFilledAskOrders(){
+        return haveFilledAskOrders;
+    }
+
+    public List<ChildOrder> getFilledAndPartFilledChildAskOrdersList() { // TODO - unit test
+        return filledAndPartFilledChildAskOrdersList;
+    }
+
+    private void setTotalFilledAskQuantity() {
+        totalFilledAskQuantity = getFilledAndPartFilledChildAskOrdersList().stream()
+        .mapToLong(ChildOrder::getFilledQuantity)
+        .sum();
+    }
+
+    public long getTotalFilledAskQuantity() { // TODO - TEST THIS METHOD
+        return totalFilledAskQuantity;
+    }
+
+    private void setNumOfSharesOwned() {
+        numOfSharesOwned = getTotalFilledBidQuantity() - getTotalFilledAskQuantity();
+    }
+
+    public long getNumOfSharesOwned() {  // TODO - TEST THIS METHOD
+        return numOfSharesOwned;
+    }
+
+    private void setTotalRevenue() {
+        totalRevenue = getFilledAndPartFilledChildAskOrdersList().stream()
+            .mapToLong(order -> (order.getFilledQuantity() * order.getPrice()))
+            .sum();
+    }
+    
+    public long getTotalRevenue() { //TODO test this method
+        return totalRevenue;
+    }
+    
+    private long totalProfitOrLoss;
+
+    private void setTotalProfitOrLoss() {
+        totalProfitOrLoss = getTotalRevenue() - getTotalExpenditure();
+    }
+    
+    public long getTotalProfitOrLoss() { // top 10 // TODO - TEST THIS METHOD
+        return totalProfitOrLoss;
+    }
 
     @Override
     public Action evaluate(SimpleAlgoState state) {
@@ -343,8 +398,7 @@ public class MyAlgoLogic implements AlgoLogic {
         }
 
         setTotalQuantityOfBidOrdersInCurrentTick();
-        setChildBidOrderQuantity();
-
+    
         // UPDATE DATA ABOUT CURRENT MARKET DATA TICK - SELL SIDE
         bestAskOrderInCurrentTick = state.getAskAt(0);
         bestAskPriceInCurrentTick = getBestAskOrderInCurrentTick().getPrice();
@@ -372,9 +426,7 @@ public class MyAlgoLogic implements AlgoLogic {
         // ANALYSING THE SPREAD
         if (getRelativeSpreadInCurrentTick() < 2) {
             tightSpread = true;
-
-        } else if 
-            (getRelativeSpreadInCurrentTick() >= 2 && getRelativeSpreadInCurrentTick() <= 3) {
+        } else if (getRelativeSpreadInCurrentTick() >= 2 && getRelativeSpreadInCurrentTick() <= 3) {
                 regularSpread = true;
         } else if (getRelativeSpreadInCurrentTick() < 2) {
             wideSpread = true;
@@ -446,6 +498,25 @@ public class MyAlgoLogic implements AlgoLogic {
                 .orElse(null);  // handle the case when max() returns an empty Optional
             }
 
+        // Update list of filled child ASK orders
+        filledAndPartFilledChildAskOrdersList = state.getChildOrders().stream()
+            .filter(order -> order.getSide() == Side.SELL && order.getFilledQuantity() > 0)
+            .filter(order -> !askOrdersMarkedAsFilledOrPartFilled.contains(order))  // Only add if not processed
+            .peek(order -> askOrdersMarkedAsFilledOrPartFilled.add(order))  // Mark as processed
+            .peek(order-> filledAndPartFilledChildAskOrdersListToString // TODO DELETE LATER ONLY FOR OUTPUT DURING DEVELOPMENT FOR BACK TESTS
+            .add("FILL/PARTFILL ASK Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "] filledQuantity: " + order.getFilledQuantity())) // TODO DELETE LATER URING DEVELOPMENT FOR BACK TESTS
+            .collect(Collectors.toList());
+
+        // if there are filled ASK Orders
+        if (!filledAndPartFilledChildAskOrdersList.isEmpty()) { 
+            haveFilledAskOrders = true;
+            setTotalFilledAskQuantity();
+            setTotalRevenue();
+        }
+
+        setNumOfSharesOwned();
+        setChildBidOrderQuantity();
+        setTotalProfitOrLoss();
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
@@ -453,7 +524,7 @@ public class MyAlgoLogic implements AlgoLogic {
             return NoAction.NoAction;
         }
 
-        if (haveFilledBidOrders && getHaveActiveAskOrders() == false) {
+        if (haveFilledBidOrders && (getHaveActiveAskOrders() == false) && (getTargetChildAskOrderPrice() >= getBestAskPriceInCurrentTick())){
             return new CreateChildOrder(Side.SELL, getTotalFilledBidQuantity(), getTargetChildAskOrderPrice());
         }
 
@@ -462,9 +533,9 @@ public class MyAlgoLogic implements AlgoLogic {
             return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 3 + priceDifferentiator));
         
         // if spread is wide, place a buy order bid above best bid to narrow the spread and (hopefully!) prompt trading
-        } else if (allChildOrdersList.size() < 3 && wideSpread) {
+        } if (allChildOrdersList.size() < 3 && wideSpread) {
             priceDifferentiator += 1;
-            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick() - 2 + priceDifferentiator));
+            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 2 + priceDifferentiator));
 
         } else {
             return NoAction.NoAction;

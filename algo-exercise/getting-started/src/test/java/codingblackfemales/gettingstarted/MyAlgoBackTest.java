@@ -274,6 +274,36 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     }
 
     @Test
+    public void testCalculatesTotalProfitOrLoss () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
+        send(Tick2());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals(-9800, myAlgoLogic.getTotalProfitOrLoss());
+    }
+
+    
+
+    @Test
+    public void testUpdatesNumOfSharesOwned () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
+        send(Tick2());
+
+        //then: get the state
+        var state = container.getState();
+
+        myAlgoLogic.evaluate(state);
+        assertEquals("Num of shares owned after tick 2 should be 100", 100, myAlgoLogic.getNumOfSharesOwned());
+    }
+    
+    @Test
     public void testGetMethodForAverageEntryPriceUpdates () throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
@@ -304,7 +334,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state = container.getState();
         myAlgoLogic.evaluate(state);
 
-        assertEquals("getHaveActiveAskOrders() should evaluate to false after Tick1", false, myAlgoLogic.getHaveActiveAskOrders());
+        assertEquals("Should not have active child ask orders after Tick1", false, myAlgoLogic.getHaveActiveAskOrders());
 
         send(Tick2());
 
@@ -312,9 +342,24 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state2 = container.getState();
         myAlgoLogic.evaluate(state2);
 
-        assertEquals("getHaveActiveAskOrders() should evaluate to true after Tick2", true, myAlgoLogic.getHaveActiveAskOrders());
-
+        assertEquals("Should have an active child ask order after Tick2", true, myAlgoLogic.getHaveActiveAskOrders());
     }
+
+    @Test
+    public void testBooleanCheckForFilledChildAskOrders() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
+        send(Tick2());
+
+         //then: get the state again
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
+
+        assertEquals("Should not have any filled child ask orders after Tick2", false, myAlgoLogic.getHaveFilledAskOrders());
+    }
+
+    
     @Test
     public void testCreatesChildOrderOnSellSide () throws Exception {
         send(Tick1());
