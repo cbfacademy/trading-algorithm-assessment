@@ -142,6 +142,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
     // booleans for analysing the spread
     private boolean tightSpread = false;
+    private boolean regularSpread = false;
     private boolean wideSpread = false;
 
  
@@ -369,9 +370,13 @@ public class MyAlgoLogic implements AlgoLogic {
         relativeSpreadInCurrentTick = Math.round((theSpreadInCurrentTick / midPriceInCurrentTick * 100) * 100 / 100); // rounded to 2dp
     
         // ANALYSING THE SPREAD
-        if (getRelativeSpreadInCurrentTick() < 3) {
+        if (getRelativeSpreadInCurrentTick() < 2) {
             tightSpread = true;
-        } else {
+
+        } else if 
+            (getRelativeSpreadInCurrentTick() >= 2 && getRelativeSpreadInCurrentTick() <= 3) {
+                regularSpread = true;
+        } else if (getRelativeSpreadInCurrentTick() < 2) {
             wideSpread = true;
         };
     
@@ -452,7 +457,7 @@ public class MyAlgoLogic implements AlgoLogic {
             return new CreateChildOrder(Side.SELL, getTotalFilledBidQuantity(), getTargetChildAskOrderPrice());
         }
 
-        if (allChildOrdersList.size() < 3 && getActiveChildAskOrdersList().size() < 1) {
+        if (allChildOrdersList.size() < 3 && getActiveChildAskOrdersList().size() < 2) {
             priceDifferentiator += 1;
             return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 3 + priceDifferentiator));
         
