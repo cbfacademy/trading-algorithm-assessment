@@ -1,6 +1,7 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.action.Action;
+import codingblackfemales.action.CancelChildOrder;
 import codingblackfemales.action.CreateChildOrder;
 import codingblackfemales.action.NoAction;
 import codingblackfemales.algo.AlgoLogic;
@@ -456,6 +457,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
         // Update list of active child bid orders
         activeChildBidOrdersToStringList.clear();  // for logging
+        getActiveChildBidOrdersList().clear();
         activeChildBidOrdersList = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.BUY)
             .peek(order -> activeChildBidOrdersToStringList
@@ -496,6 +498,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
         // Update list of active child ASK orders
         activeChildAskOrdersListToString.clear();  // TODO delete later - only for logging now
+        getActiveChildAskOrdersList().clear();
         activeChildAskOrdersList = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.SELL)
             .peek(order -> activeChildAskOrdersListToString
@@ -552,6 +555,27 @@ public class MyAlgoLogic implements AlgoLogic {
             logger.info("(allChildOrdersList.size() > 10) condiition met, taking no action");
             return NoAction.NoAction;
         }
+
+        // If own 0 shares, cancel any and all sell orders
+        if ((getNumOfSharesOwned() == 0) && getHaveActiveAskOrders()){
+            while (getHaveActiveAskOrders()) {
+                logger.info(" (getNumOfSharesOwned() == 0) && getHaveActiveAskOrders() condition met, cancelling all sell orders");
+                return new CancelChildOrder(getActiveChildAskOrdersList().get(0));
+            }
+        }
+        // If a child ask order becomes uncompetitive, cancel it
+        if (getHaveActiveAskOrders() && (getActiveChildAskOrderWithHighestPrice().getPrice() >= (getBestAskPriceInCurrentTick() + 7))) {
+            logger.info("(getHaveActiveAskOrders() && (getActiveChildAskOrderWithHighestPrice().getPrice() >= (getBestAskPriceInCurrentTick() + 7))) met, cancelling least competitive ask order");
+            return new CancelChildOrder(getActiveChildAskOrderWithHighestPrice());
+        }
+
+        // If a child buy order becomes uncompetitive, cancel it
+        if (getHaveActiveBidOrders() && (getActiveChildBidOrderWithLowestPrice().getPrice() <= (getBestBidPriceInCurrentTick() - 7))) {
+            logger.info("(getHaveActiveBidOrders() && (getActiveChildBidOrderWithLowestPrice().getPrice() <= (getBestBidPriceInCurrentTick() - 7))) met, cancelling least competitive bid order");
+            return new CancelChildOrder(getActiveChildBidOrderWithLowestPrice());
+        }
+        
+
         // 1st ask order positioned passive with price at profit target of 3% for full amount of shares owned
         if ((getNumOfSharesOwned() > 0) && (getHaveActiveAskOrders() == false) && (getTargetChildAskOrderPrice() >= getBestAskPriceInCurrentTick() && regularSpread)){
             logger.info("(getNumOfSharesOwned() && (getHaveActiveAskOrders() == false) && (getTargetChildAskOrderPrice() >= getBestAskPriceInCurrentTick() && regularSpread)) met, placing a sell order");

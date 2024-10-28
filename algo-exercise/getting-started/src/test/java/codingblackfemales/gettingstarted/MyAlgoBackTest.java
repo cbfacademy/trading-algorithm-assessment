@@ -2,6 +2,7 @@ package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
 import codingblackfemales.sotw.ChildOrder;
+import codingblackfemales.sotw.OrderState;
 
 import org.junit.Test;
 
@@ -9,7 +10,8 @@ import messages.order.Side;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This test plugs together all of the infrastructure, including the order book (which you can trade against)
@@ -442,8 +444,43 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("Target child ask order price should be average entry price * 1.03 rounded up with Math.ceil", 101, myAlgoLogic.getTargetChildAskOrderPrice());
 
     }
-    
-    // getTargetChildAskOrderPrice()
+
+    @Test
+    public void testLeastCompetitiveBidOrderGetsCancelled() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
+        send(Tick2());
+
+
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
+        assertEquals("Least competitve bid order after tick 2 should be order Id 2", 2, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getOrderId());
+
+        // send(Tick1());
+        // send(Tick2());
+        send(Tick3());
+
+        var state2 = container.getState();
+        myAlgoLogic.evaluate(state2);
+        assertEquals("Least competitve bid order after tick 3 should still be order Id 2", 2, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getOrderId());
+
+        // send(Tick1());
+        // send(Tick2());
+        // send(Tick3());
+        send(Tick4());
+
+        var state3 = container.getState();
+        
+        List<ChildOrder> cancelledOrders = state3.getChildOrders().stream()
+            .filter(order -> order.getState() == OrderState.CANCELLED)
+            .collect(Collectors.toList());
+
+        assertEquals("There should be one cancelled child order", 1, cancelledOrders.size());
+        assertEquals("The canceled child order should be order Id 2", 2, cancelledOrders.get(0).getOrderId());
+
+
+    }
     
 }
         //when: market data moves towards us
@@ -453,6 +490,6 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         // var state = container.getState();
 
         //Check things like filled quantity, cancelled order count etc....
-        //long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
+        // long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
         //and: check that our algo state was updated to reflect our fills when the market data
-        //assertEquals(225, filledQuantity);
+        // assertEquals(225, filledQuantity);
