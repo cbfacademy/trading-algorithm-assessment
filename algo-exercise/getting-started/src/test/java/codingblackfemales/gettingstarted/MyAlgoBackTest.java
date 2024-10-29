@@ -384,7 +384,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state = container.getState();
         myAlgoLogic.evaluate(state);
 
-        assertEquals("There should be 1 active child ask orders in the list", 1, myAlgoLogic.getActiveChildAskOrdersList().size());
+        assertEquals("There should be 2 active child ask orders after Tick 2", 2, myAlgoLogic.getActiveChildAskOrdersList().size());
 
     }
     
@@ -398,9 +398,9 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state = container.getState();
         myAlgoLogic.evaluate(state);
 
-        assertEquals("Price of active child ask order with the highest price should be 101", 101, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getPrice());
+        assertEquals("Price of active child ask order with the highest price should be 102", 102, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getPrice());
         assertEquals("Quantity of active child ask order with the highest price should be 100", 100, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getQuantity());
-        assertEquals("Order ID of active child ask order with the highest price should be 3", 3, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getOrderId());
+        assertEquals("Order ID of active child ask order with the highest price should be 4", 4, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getOrderId());
 
 
     }
@@ -418,7 +418,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         // After Tick 2 the active child order with the lowest price should be the same as that with the highest price
         assertEquals("Price of active child ask order with the lowest price should be 101", 101, myAlgoLogic.getActiveChildAskOrderWithLowestPrice().getPrice());
         assertEquals("Quantity of active child ask order with the lowest price should be 100", 100, myAlgoLogic.getActiveChildAskOrderWithLowestPrice().getQuantity());
-        assertEquals("Order ID of active child ask order with the lowest price should be 3", 3, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getOrderId());
+        assertEquals("Order ID of active child ask order with the lowest price should be 3", 3, myAlgoLogic.getActiveChildAskOrderWithLowestPrice().getOrderId());
 
     }
 

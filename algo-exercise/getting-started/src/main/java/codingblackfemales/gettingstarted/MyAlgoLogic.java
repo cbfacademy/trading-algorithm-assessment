@@ -588,31 +588,54 @@ public class MyAlgoLogic implements AlgoLogic {
             return new CancelChildOrder(getActiveChildBidOrderWithLowestPrice());
         }
         
-        // PLACING AN ASK ORDER WHEN OWN SHARES AND CURRENTLY HAVE 0 ACTIVE ASK ORDERS
-
-        // If spread is regular, place a passive ask order at profit target price for full amount of shares owned
-        if (getHaveShares() && (getHaveActiveAskOrders() == false) && regularSpread){
-            logger.info("(getHaveShares() && (getHaveActiveAskOrders() == false) && regularSpread)) condition met, placing an ask order at target profit price");
-            return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getTargetChildAskOrderPrice());
-        }
+        // PLACING ASK ORDERS
         
-        // If spread is wide, place a child ask order joining best ask price on order book
-        if (getHaveShares() && (getHaveActiveAskOrders() == false) && wideSpread) {
-            logger.info("(getHaveShares() && (getHaveActiveAskOrders() == false) && wideSpread)) condition met placing passive child order joining best ask");
-            return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), (getBestAskPriceInCurrentTick()));
-        }
 
-        // If spread is narrow, place child ask order to pay the spread to execute immediately
-        if (getHaveShares() && (getHaveActiveAskOrders() == false) && tightSpread) {
-            logger.info(" (getHaveShares() && (getHaveActiveAskOrders() == false) && tightSpread)) condition met, placing aggressive child order to execute immediately");
-            return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), getBestBidPriceInCurrentTick());
+        if (getHaveShares()) {
+                    
+            // when currently have 0 active ask orders
+            if (getHaveActiveAskOrders() == false) {
+
+                // place a passive ask order at profit target price for full amount of shares owned
+                logger.info("Currently own shares and have 0 active ask orders, placing an ask order at target profit price");
+                return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getTargetChildAskOrderPrice());
+            }
+          
+            // when currently have 1 active ask order
+            if (getActiveChildAskOrdersList().size() == 1) {
+
+                // as long as the average entry price is below best ask in current tick
+                if (getAverageEntryPrice() < getBestAskPriceInCurrentTick()) {
+
+                    if (regularSpread) {
+                        // place a passive ask order above best ask order price
+                        logger.info("Currently own shares, have 1 active ask order and spread is regular, placing an ask order above best ask");
+                        return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getBestAskPriceInCurrentTick() + 1));
+                    }
+
+                    // If spread is wide, place a child ask order joining best ask price on order book
+                    if (wideSpread) {
+                        logger.info("Currently own shares, have 1 active ask order and spread is wide, placing an ask order to join best ask");
+                        return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), (getBestAskPriceInCurrentTick()));
+                    }
+                    // If spread is narrow, and best ask is above average entry price, place child ask order to pay the spread to execute immediately
+                    if (tightSpread && getAverageEntryPrice() < getBestBidPriceInCurrentTick()) {
+                        logger.info("Currently own shares, have 1 active ask order, spread is narrow and best bid is above average entry price. Placing an at-market ask order to execute immediately");
+                        return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), getBestBidPriceInCurrentTick()); 
+                    }
+                }
+
+            }  
+        
+        
         }
 
 
         // PLACING BID ORDERS 
-
         
-        if (getHaveActiveBidOrders() == false) { // when currently have 0 active bid orders
+        // when currently have 0 active bid orders
+
+        if (getHaveActiveBidOrders() == false) { 
             //if spread is wide, place a passive child order bid 1 tick above best bid to narrow the spread and (hopefully!) prompt trading
             if (wideSpread) {
                 logger.info("Currently have 0 active bid orders and spread is wide, placing a bid order above current best bid");
