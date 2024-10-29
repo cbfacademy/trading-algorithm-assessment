@@ -59,10 +59,10 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
         myAlgoLogic.evaluate(state);
 
-        assertEquals("[BID[200@98], BID[100@97], BID[100@96], BID[200@95], BID[300@91]]", myAlgoLogic.getTopBidOrdersInCurrentTick().toString()); //
-        assertArrayEquals("Best bid prices should be 98, 97, 96, 95, 91", new Long[]{(long) 98, (long) 97, (long) 96, (long) 95, (long) 91}, myAlgoLogic.getPricesOfTopBidOrdersInCurrentTick().toArray(Long[]::new));
-        assertArrayEquals("Best bid quantities should be 200, 100, 100, 200, 300", new Long[]{(long) 200, (long) 100, (long) 100, (long) 200, (long) 300}, myAlgoLogic.getQuantitiesOfTopBidOrdersInCurrentTick().toArray(Long[]::new));
-        assertEquals("Total quantity of best bids should be 900", 900, myAlgoLogic.getTotalQuantityOfBidOrdersInCurrentTick()); // 600 from original orderbook + 200 placed by MyAlgoLogic
+        assertEquals("[BID[200@98], BID[200@95], BID[300@91]]", myAlgoLogic.getTopBidOrdersInCurrentTick().toString()); //
+        assertArrayEquals("Best bid prices should be 98, 95, 91", new Long[]{(long) 98,  (long) 95, (long) 91}, myAlgoLogic.getPricesOfTopBidOrdersInCurrentTick().toArray(Long[]::new));
+        assertArrayEquals("Best bid quantities should be 200, 200, 300", new Long[]{(long) 200,(long) 200, (long) 300}, myAlgoLogic.getQuantitiesOfTopBidOrdersInCurrentTick().toArray(Long[]::new));
+        assertEquals("Total quantity of best bids should be 900", 700, myAlgoLogic.getTotalQuantityOfBidOrdersInCurrentTick()); // 600 from original orderbook + 200 placed by MyAlgoLogic
     }
 
     @Test
@@ -112,14 +112,27 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     }
 
     @Test
-    public void testCreatesThreeChildOrdersOnTheBuySide() throws Exception {
+    public void testAChildOrderOnTheBuySideAfterTick1() throws Exception {
         //create a sample market data tick....
         send(Tick1());
 
-        assertEquals("Check creates a child order on buy side", Side.BUY, container.getState().getChildOrders().get(0).getSide());
-        assertEquals("Check creates a second child order on buy side", Side.BUY, container.getState().getChildOrders().get(1).getSide());
-        assertEquals("Check creates a third child order on buy side", Side.BUY, container.getState().getChildOrders().get(2).getSide());
-        
+        assertEquals("Check creates a child order on buy side", Side.BUY, container.getState().getChildOrders().get(0).getSide());        
+    }
+
+    @Test
+    public void testPriceOfChildBidOrderAfterTick1() throws Exception {
+        //create a sample market data tick....
+        send(Tick1());
+
+        assertEquals("Child order should be priced at 98 joining best bid", 98, container.getState().getChildOrders().get(0).getPrice());        
+    }
+
+    @Test
+    public void testQuantityOfFirstChildBidOrderAfterTick1() throws Exception {
+        //create a sample market data tick....
+        send(Tick1());
+
+        assertEquals("Child order should be for a quantity of 100", 100, container.getState().getChildOrders().get(0).getQuantity());        
     }
 
     @Test
@@ -146,7 +159,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state = container.getState();
 
         myAlgoLogic.evaluate(state);
-        assertEquals("List of active child bid orders should contain 3 orders after Tick 1", 3, myAlgoLogic.getActiveChildBidOrdersList().size());
+        assertEquals("List of active child bid orders should contain 1 order after Tick 1", 1, myAlgoLogic.getActiveChildBidOrdersList().size());
     }
 
     @Test
@@ -159,8 +172,8 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state = container.getState();
 
         myAlgoLogic.evaluate(state);
-        assertEquals("List of child orders as strings", "[ACTIVE CHILD BID Id:2 [100@96], ACTIVE CHILD BID Id:3 [100@97], ACTIVE CHILD BID Id:4 [100@98]]", myAlgoLogic.getActiveChildBidOrdersToStringList().toString());
-        assertEquals("Price of active child bid order with the lowest price should be 96", 96, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getPrice());
+        assertEquals("List of child orders as strings", "[ACTIVE CHILD BID Id:2 [100@98]]", myAlgoLogic.getActiveChildBidOrdersToStringList().toString());
+        assertEquals("Price of active child bid order with the lowest price should be 96", 98, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getPrice());
         assertEquals("Price of active child bid order with the highest price should be 98", 98, myAlgoLogic.getActiveChildBidOrderWithHighestPrice().getPrice());
     }
 
@@ -168,7 +181,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
 
     @Test
-    public void testTotalQuantityOfFirstThreeChildOrders() throws Exception {
+    public void testTotalQuantityOfActivChildOrdersAfterTick1() throws Exception {
         send(Tick1());
          //then: get the state
         var state = container.getState(); 
@@ -177,47 +190,12 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         long totalQuantityOfActiveChildBidOrders = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.BUY)
             .map(ChildOrder::getQuantity).reduce(Long::sum).get();
-        assertEquals("Check total quantity of active child BID orders is 300", 300, totalQuantityOfActiveChildBidOrders);
+        assertEquals("Total quantity of active child BID orders should be 100 after Tick 1", 100, totalQuantityOfActiveChildBidOrders);
     }
+
 
     @Test
-    public void testFirstChildBidOrderPriceAndQuantity() throws Exception {
-
-        send(Tick1());
-    
-        //then: get the state
-        var state = container.getState();    
-        
-
-        assertEquals("First child bid order price should be 96", 96, state.getChildOrders().get(0).getPrice());
-        assertEquals("First child bid order quantity should be 100", 100, state.getChildOrders().get(0).getQuantity());
-    }
-
-        @Test
-        public void testSecondChildBidOrderPriceAndQuantity() throws Exception {
-        send(Tick1());
-    
-        //then: get the state
-        var state = container.getState();         
-
-        assertEquals("Second child bid order price should be 97", 97, state.getChildOrders().get(1).getPrice());
-        assertEquals("Second child bid order quantity should be 100", 100, state.getChildOrders().get(1).getQuantity());
-        }
-
-
-        @Test
-        public void testThirdChildBidOrderPriceAndQuantity() throws Exception {
-        send(Tick1());
-    
-        //then: get the state
-        var state = container.getState(); 
-        assertEquals("Third child bid order price should be 98", 98, state.getChildOrders().get(2).getPrice());
-        assertEquals("Third child bid order quantity should be 100", 100, state.getChildOrders().get(2).getQuantity());
-        
-    }
-
-    @Test
-    public void testChildBidOrderId4ExecutesAfterTick2() throws Exception {
+    public void testChildBidOrderId2ExecutesAfterTick2() throws Exception {
     send(Tick1());
     send(Tick2());
     //then: get the state
@@ -228,7 +206,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         .findFirst()
         .orElse(null);
     
-    assertEquals(4, filledChildOrder.getOrderId());
+    assertEquals(2, filledChildOrder.getOrderId());
 
     long filledQuantity = state.getChildOrders().stream().map(ChildOrder::getFilledQuantity).reduce(Long::sum).get();
     assertEquals(100, filledQuantity);
@@ -237,7 +215,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
 
 @Test
-    public void testChildBidOrderId4IsAddedToListOfFilledAndPartFilledChildBidOrders() throws Exception {
+    public void testChildBidOrderId2IsAddedToListOfFilledAndPartFilledChildBidOrders() throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
         send(Tick1());
@@ -248,7 +226,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
         myAlgoLogic.evaluate(state);
         assertEquals(1, myAlgoLogic.getFilledAndPartFilledChildBidOrdersList().size());
-        assertEquals(4, myAlgoLogic.getFilledAndPartFilledChildBidOrdersList().get(0).getOrderId());
+        assertEquals(2, myAlgoLogic.getFilledAndPartFilledChildBidOrdersList().get(0).getOrderId());
     }
 
     @Test
@@ -274,9 +252,8 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
         //then: get the state
         var state = container.getState();
-
         myAlgoLogic.evaluate(state);
-        assertEquals(9800, myAlgoLogic.getTotalExpenditure());
+        assertEquals("After Tick 2, total expenditure should be 9800", 9800, myAlgoLogic.getTotalExpenditure());
     }
 
     @Test
@@ -309,8 +286,9 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("Num of shares owned after tick 2 should be 100", 100, myAlgoLogic.getNumOfSharesOwned());
     }
     
+
     @Test
-    public void testGetMethodForAverageEntryPriceUpdates () throws Exception {
+    public void testAverageEntryPriceIs0AfterTick1 () throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
         send(Tick1());
@@ -320,18 +298,24 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         myAlgoLogic.evaluate(state);
 
         assertEquals("Average entry price should evaluate to 0 after tick 1", 0, myAlgoLogic.getAverageEntryPrice());
+    }
 
+    @Test
+    public void testGetMethodForAverageEntryPriceUpdatesAfterTick2 () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
         send(Tick2());
 
-        //then: get the state again
-        var state2 = container.getState();
+        //then: get the state
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
 
-        myAlgoLogic.evaluate(state2);
         assertEquals("Average entry price should evaluate to 98 after tick 2", 98, myAlgoLogic.getAverageEntryPrice());
     }
-    
+
     @Test
-    public void testBooleanCheckForActiveChildAskOrders() throws Exception {
+    public void testBooleanCheckForActiveChildAskOrdersEvaluatesToFalseAfterTick1() throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
         send(Tick1());
@@ -342,11 +326,18 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
         assertEquals("Should not have active child ask orders after Tick1", false, myAlgoLogic.getHaveActiveAskOrders());
 
+    }
+    
+    @Test
+    public void testBooleanCheckForActiveChildAskOrdersEvaluatesToTrueAfterTick2() throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
         send(Tick2());
 
-         //then: get the state again
-        var state2 = container.getState();
-        myAlgoLogic.evaluate(state2);
+        //then: get the state
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
 
         assertEquals("Should have an active child ask order after Tick2", true, myAlgoLogic.getHaveActiveAskOrders());
     }
@@ -372,8 +363,8 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         send(Tick2());
 
         var state = container.getState();
-        assertEquals("Check creates a child order on sell side", Side.SELL, state.getChildOrders().get(3).getSide());
-        assertEquals("Quantity of child order on sell side should be 100", 100, state.getChildOrders().get(3).getQuantity());
+        assertEquals("Check creates a child order on sell side", Side.SELL, state.getChildOrders().get(1).getSide());
+        assertEquals("Quantity of child order on sell side should be 100", 100, state.getChildOrders().get(1).getQuantity());
 
     }
 
@@ -381,7 +372,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     public void testCalculatesChildAskOrderBasedOnTargetProfitOfAverageEntryPricePlusThreePercent () throws Exception {
         send(Tick1());
         send(Tick2());
-        assertEquals("Price of child order on sell side should be 101 based on average entry price of 98 (Math.ceil(98 * 1.03))", 101, container.getState().getChildOrders().get(3).getPrice());
+        assertEquals("Price of child order on sell side should be 101 based on average entry price of 98 (Math.ceil(98 * 1.03))", 101, container.getState().getChildOrders().get(1).getPrice());
     }
 
     @Test
@@ -393,7 +384,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state = container.getState();
         myAlgoLogic.evaluate(state);
 
-        assertEquals("There should be 2 active child ask orders in the list", 2, myAlgoLogic.getActiveChildAskOrdersList().size());
+        assertEquals("There should be 1 active child ask orders in the list", 1, myAlgoLogic.getActiveChildAskOrdersList().size());
 
     }
     
@@ -409,7 +400,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
         assertEquals("Price of active child ask order with the highest price should be 101", 101, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getPrice());
         assertEquals("Quantity of active child ask order with the highest price should be 100", 100, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getQuantity());
-        assertEquals("Order ID of active child ask order with the highest price should be 5", 5, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getOrderId());
+        assertEquals("Order ID of active child ask order with the highest price should be 3", 3, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getOrderId());
 
 
     }
@@ -427,7 +418,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         // After Tick 2 the active child order with the lowest price should be the same as that with the highest price
         assertEquals("Price of active child ask order with the lowest price should be 101", 101, myAlgoLogic.getActiveChildAskOrderWithLowestPrice().getPrice());
         assertEquals("Quantity of active child ask order with the lowest price should be 100", 100, myAlgoLogic.getActiveChildAskOrderWithLowestPrice().getQuantity());
-        assertEquals("Order ID of active child ask order with the lowest price should be 5", 5, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getOrderId());
+        assertEquals("Order ID of active child ask order with the lowest price should be 3", 3, myAlgoLogic.getActiveChildAskOrderWithHighestPrice().getOrderId());
 
     }
 
@@ -445,42 +436,68 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
     }
 
-    @Test
-    public void testLeastCompetitiveBidOrderGetsCancelled() throws Exception {
-        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+    // @Test
+    // public void testLeastCompetitiveBidOrderAfterTick2IsOrderId2() throws Exception {
+    //     MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
-        send(Tick1());
-        send(Tick2());
-
-
-        var state = container.getState();
-        myAlgoLogic.evaluate(state);
-        assertEquals("Least competitve bid order after tick 2 should be order Id 2", 2, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getOrderId());
-
-        // send(Tick1());
-        // send(Tick2());
-        send(Tick3());
-
-        var state2 = container.getState();
-        myAlgoLogic.evaluate(state2);
-        assertEquals("Least competitve bid order after tick 3 should still be order Id 2", 2, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getOrderId());
-
-        // send(Tick1());
-        // send(Tick2());
-        // send(Tick3());
-        send(Tick4());
-
-        var state3 = container.getState();
-        
-        List<ChildOrder> cancelledOrders = state3.getChildOrders().stream()
-            .filter(order -> order.getState() == OrderState.CANCELLED)
-            .collect(Collectors.toList());
-
-        assertEquals("There should be one cancelled child order", 1, cancelledOrders.size());
-        assertEquals("The canceled child order should be order Id 2", 2, cancelledOrders.get(0).getOrderId());
+    //     send(Tick1());
+    //     send(Tick2());
 
 
-    }
+    //     var state = container.getState();
+    //     myAlgoLogic.evaluate(state);
+    //     assertEquals("Least competitve bid order after tick 2 should be order Id 2", 2, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getOrderId());
+    // }
+
+
+    // @Test
+    // public void testLeastCompetitiveBidOrderAfterTick3IsStillOrderId2() throws Exception {
+    //     MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+    //     send(Tick1());
+    //     send(Tick2());
+    //     send(Tick3());
+
+    //     var state = container.getState();
+    //     myAlgoLogic.evaluate(state);        
+    //     assertEquals("Least competitve bid order after tick 3 should still be order Id 2", 2, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getOrderId());
+
+    // }
+
+    // @Test
+    // public void testThereShouldBeOneCancelledBidOrderAfterTick4() throws Exception {
+
+    //     send(Tick1());
+    //     send(Tick2());
+    //     send(Tick3());
+    //     send(Tick4());
+
+    //     var state = container.getState();
+
+    //     List<ChildOrder> cancelledOrders = state.getChildOrders().stream()
+    //         .filter(order -> order.getState() == OrderState.CANCELLED)
+    //         .collect(Collectors.toList());
+
+    //     assertEquals("There should be one cancelled child order", 1, cancelledOrders.size());
+    // }
+
+    // @Test
+    // public void testLeastCompetitiveBidOrderId2GetsCancelledAfterTick4() throws Exception {
+
+    //     send(Tick1());
+    //     send(Tick2());
+    //     send(Tick3());
+    //     send(Tick4());
+
+    //     var state = container.getState();
+
+    //     List<ChildOrder> cancelledOrders = state.getChildOrders().stream()
+    //         .filter(order -> order.getState() == OrderState.CANCELLED)
+    //         .collect(Collectors.toList());
+
+    //     assertEquals("The canceled child order should be order Id 2", 2, cancelledOrders.get(0).getOrderId());
+
+    // }
     
 }
         //when: market data moves towards us

@@ -25,7 +25,6 @@ public class MyAlgoLogic implements AlgoLogic {
     private static final Logger logger = LoggerFactory.getLogger(MyAlgoLogic.class);
     
     private int marketDataTickCount = 0;
-    private int priceDifferentiator = 0;
 
     // DATA ABOUT THE CURRENT MARKET TICK
 
@@ -145,7 +144,6 @@ public class MyAlgoLogic implements AlgoLogic {
     private boolean tightSpread = false;
     private boolean regularSpread = false;
     private boolean wideSpread = false;
-
  
     // variable to cap items of data to analyse
     int MAX_ITEMS_OF_DATA = 10;
@@ -364,6 +362,13 @@ public class MyAlgoLogic implements AlgoLogic {
         return numOfSharesOwned;
     }
 
+    // boolean for if we own shares
+    private boolean haveShares = false;
+
+    public boolean getHaveShares(){
+        return haveShares;
+    }
+
     private void setTotalRevenue() {
         totalRevenue = getFilledAndPartFilledChildAskOrdersList().stream()
             .mapToLong(order -> (order.getFilledQuantity() * order.getPrice()))
@@ -457,7 +462,6 @@ public class MyAlgoLogic implements AlgoLogic {
 
         // Update list of active child bid orders
         activeChildBidOrdersToStringList.clear();  // for logging
-        getActiveChildBidOrdersList().clear();
         activeChildBidOrdersList = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.BUY)
             .peek(order -> activeChildBidOrdersToStringList
@@ -498,7 +502,6 @@ public class MyAlgoLogic implements AlgoLogic {
 
         // Update list of active child ASK orders
         activeChildAskOrdersListToString.clear();  // TODO delete later - only for logging now
-        getActiveChildAskOrdersList().clear();
         activeChildAskOrdersList = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.SELL)
             .peek(order -> activeChildAskOrdersListToString
@@ -536,6 +539,11 @@ public class MyAlgoLogic implements AlgoLogic {
         setChildBidOrderQuantity();
         setTotalProfitOrLoss();
 
+        if (getNumOfSharesOwned() > 0) {
+            haveShares = true;
+        }
+
+     
         // logger.info("getChildBidOrderQuantity() is: " + getChildBidOrderQuantity());
         logger.info("getActiveChildBidOrdersToStringList() is: " + getActiveChildBidOrdersToStringList());
         logger.info("getTotalFilledBidQuantity() is: " + getTotalFilledBidQuantity());
@@ -551,21 +559,27 @@ public class MyAlgoLogic implements AlgoLogic {
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
-        if (allChildOrdersList.size() > 10) {
-            logger.info("(allChildOrdersList.size() > 10) condiition met, taking no action");
+
+        // EXIT CONDITION
+
+        if (allChildOrdersList.size() > 8) {
+            logger.info("(allChildOrdersList.size() > 8) condiition met, taking no action");
             return NoAction.NoAction;
         }
 
-        // If own 0 shares, cancel any and all sell orders
-        if ((getNumOfSharesOwned() == 0) && getHaveActiveAskOrders()){
+        // CANCELLING ORDERS
+
+        // If have 0 shares left and have active ask orders, cancel all sell orders
+        if ((getHaveShares() == false) && getHaveActiveAskOrders()){
             while (getHaveActiveAskOrders()) {
-                logger.info(" (getNumOfSharesOwned() == 0) && getHaveActiveAskOrders() condition met, cancelling all sell orders");
+                logger.info(" ((getHaveShares() == false) && getHaveActiveAskOrders()) condition met, cancelling all sell orders");
                 return new CancelChildOrder(getActiveChildAskOrdersList().get(0));
             }
         }
+
         // If a child ask order becomes uncompetitive, cancel it
         if (getHaveActiveAskOrders() && (getActiveChildAskOrderWithHighestPrice().getPrice() >= (getBestAskPriceInCurrentTick() + 7))) {
-            logger.info("(getHaveActiveAskOrders() && (getActiveChildAskOrderWithHighestPrice().getPrice() >= (getBestAskPriceInCurrentTick() + 7))) met, cancelling least competitive ask order");
+            logger.info("(getHaveActiveAskOrders() && (getActiveChildAskOrderWithHighestPrice().getPrice() >= (getBestAskPriceInCurrentTick() + 7))) condition met, cancelling least competitive ask order");
             return new CancelChildOrder(getActiveChildAskOrderWithHighestPrice());
         }
 
@@ -575,52 +589,45 @@ public class MyAlgoLogic implements AlgoLogic {
             return new CancelChildOrder(getActiveChildBidOrderWithLowestPrice());
         }
         
+        // PLACING AN ASK ORDER WHEN OWN SHARES AND CURRENTLY HAVE 0 ACTIVE ASK ORDERS
 
-        // 1st ask order positioned passive with price at profit target of 3% for full amount of shares owned
-        if ((getNumOfSharesOwned() > 0) && (getHaveActiveAskOrders() == false) && (getTargetChildAskOrderPrice() >= getBestAskPriceInCurrentTick() && regularSpread)){
-            logger.info("(getNumOfSharesOwned() && (getHaveActiveAskOrders() == false) && (getTargetChildAskOrderPrice() >= getBestAskPriceInCurrentTick() && regularSpread)) met, placing a sell order");
+        // If spread is regular, place a passive ask order at profit target price for full amount of shares owned
+        if (getHaveShares() && (getHaveActiveAskOrders() == false) && regularSpread){
+            logger.info("(getHaveShares() && (getHaveActiveAskOrders() == false) && regularSpread)) condition met, placing an ask order at target profit price");
             return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getTargetChildAskOrderPrice());
         }
-
-        // If spread is regular, 2nd child ask order for half shares owned joining best ask price on order book
-        if ((getNumOfSharesOwned() > 0) && getHaveActiveAskOrders() && getActiveChildAskOrdersList().size() < 2 && regularSpread) {
-            logger.info("(getNumOfSharesOwned() > 0) && getHaveActiveAskOrders() && getActiveChildAskOrdersList().size() < 2 && regularSpread) condition met");
-            return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned() / 2), getBestAskPriceInCurrentTick());
-        }
-        // If spread is wide, 2nd child ask order for half shares owned joining best ask price on order book
-        if ((getNumOfSharesOwned() > 0) && getHaveActiveAskOrders() && getActiveChildAskOrdersList().size() < 2 && wideSpread) {
-            logger.info("(getNumOfSharesOwned() > 0) && getHaveActiveAskOrders() && getActiveChildAskOrdersList().size() < 2 && wideSpread) condition met");
-            return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned() / 2), (getBestAskPriceInCurrentTick() - 1));
-        }
-        // If spread is narrow, 2nd child ask order pays the spread for half shares owned to execute immediately
-        if ((getNumOfSharesOwned() > 0) && getHaveActiveAskOrders() && getActiveChildAskOrdersList().size() < 2 && tightSpread) {
-            logger.info(" (getNumOfSharesOwned() > 0) && getHaveActiveAskOrders() && getActiveChildAskOrdersList().size() < 2 && tightSpread) condition met");
-            return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned() / 2), getBestBidPriceInCurrentTick());
         
-        // if spread is wide, place 3 child order bids - first 1 tick below best bid price, second joining best bid price and third 1 tick above best bid to narrow the spread and (hopefully!) prompt trading
-        } if (getActiveChildBidOrdersList().size() < 3 && wideSpread) {
-            logger.info("(getActiveChildBidOrdersList().size() < 3 && wideSpread) condition met");
-            priceDifferentiator += 1;
-            logger.info("priceDifferentiator is " + priceDifferentiator);
-            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 2 + priceDifferentiator));
-        
-        // if spread is regular, place 3 child order bids - first 2 ticks below best bid price, second 1 tick below best bid price and third joining best bid price
-        } if (getActiveChildBidOrdersList().size() < 3 && regularSpread) {
-            logger.info("(getActiveChildBidOrdersList().size() < 3 && regularSpread) condition met");
-            priceDifferentiator += 1;
-            logger.info("priceDifferentiator is " + priceDifferentiator);
-            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 3 + priceDifferentiator));
+        // If spread is wide, place a child ask order joining best ask price on order book
+        if (getHaveShares() && (getHaveActiveAskOrders() == false) && wideSpread) {
+            logger.info("(getHaveShares() && (getHaveActiveAskOrders() == false) && wideSpread)) condition met placing passive child order joining best ask");
+            return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), (getBestAskPriceInCurrentTick()));
+        }
 
-        // if spread is tight, place 3 child orders, first 1 tick below best bid price, second joining best bid price and third 1 tick above best bid to pay the spread and buy immediately
-        } if (getActiveChildBidOrdersList().size() < 3 && tightSpread) {
-            logger.info("(getActiveChildBidOrdersList().size() < 3 && tightSpread) condition met");
-            priceDifferentiator += 1;
-            logger.info("priceDifferentiator is " + priceDifferentiator);
-            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 2 + priceDifferentiator));
+        // If spread is narrow, place child ask order to pay the spread to execute immediately
+        if (getHaveShares() && (getHaveActiveAskOrders() == false) && tightSpread) {
+            logger.info(" (getHaveShares() && (getHaveActiveAskOrders() == false) && tightSpread)) condition met, placing aggressive child order to execute immediately");
+            return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), getBestBidPriceInCurrentTick());
+        
+
+        // PLACING BID ORDERS WHEN CURRENTLY HAVE 0 ACTIVE BID ORDERS
+
+        // if spread is wide, place a passive child order bid 1 tick above best bid to narrow the spread and (hopefully!) prompt trading
+        } if ((getHaveActiveBidOrders() == false) && wideSpread) {
+            logger.info("(getActiveChildBidOrdersList().size() == 0 && wideSpread) condition met");
+            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + 1));
+        
+        // if spread is regular, place a passive child bid order joining best bid price
+        } if ((getHaveActiveBidOrders() == false) && regularSpread) {
+            logger.info("(getActiveChildBidOrdersList().size() == 0 && regularSpread) condition met");
+            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick()));
+
+        // if spread is tight, place an aggressive child bid order paying the spread to buy immediately
+        } if ((getHaveActiveBidOrders() == false) && tightSpread) {
+            logger.info("(getActiveChildBidOrdersList().size() == 0 && tightSpread) condition met");
+            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick()));
 
         } else {
-            logger.info("no specific conditions met, no Action");
-
+            logger.info("No buy or sell conditions met, no Action, hold position");
             return NoAction.NoAction;
         }
 
