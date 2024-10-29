@@ -436,69 +436,53 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
     }
 
-    // @Test
-    // public void testLeastCompetitiveBidOrderAfterTick2IsOrderId2() throws Exception {
-    //     MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+    @Test
+    public void testHave3ChildOrdersInTotalAfterTick2() throws Exception {
+        
+        send(Tick1());
+        send(Tick2());
 
-    //     send(Tick1());
-    //     send(Tick2());
+        var state = container.getState();
+
+        assertEquals("Should have 3 child orders in total after tick 2", 3, state.getChildOrders().size());
+
+    }
 
 
-    //     var state = container.getState();
-    //     myAlgoLogic.evaluate(state);
-    //     assertEquals("Least competitve bid order after tick 2 should be order Id 2", 2, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getOrderId());
-    // }
+    @Test
+    public void testNoActionAfterTick3() throws Exception {
+
+        send(Tick1());
+        send(Tick2());
+        send(Tick3());
+
+        var state = container.getState();
+
+        assertEquals("Should still have only 3 child orders after tick 3", 3, state.getChildOrders().size());
+    }
 
 
-    // @Test
-    // public void testLeastCompetitiveBidOrderAfterTick3IsStillOrderId2() throws Exception {
-    //     MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
-    //     send(Tick1());
-    //     send(Tick2());
-    //     send(Tick3());
+    @Test
+    public void testStatusOfAskOrderId3() throws Exception {
 
-    //     var state = container.getState();
-    //     myAlgoLogic.evaluate(state);        
-    //     assertEquals("Least competitve bid order after tick 3 should still be order Id 2", 2, myAlgoLogic.getActiveChildBidOrderWithLowestPrice().getOrderId());
+        send(Tick1());
+        send(Tick2());
+        send(Tick3());
+        send(Tick4());
 
-    // }
+        var state = container.getState();
 
-    // @Test
-    // public void testThereShouldBeOneCancelledBidOrderAfterTick4() throws Exception {
+        List <ChildOrder> childOrderId3 = state.getChildOrders().stream()
+            .filter(order -> order.getOrderId() == 3)
+            .collect(Collectors.toList());
+        
+        assertEquals("Child order ID 3 should be a sell order", Side.SELL, childOrderId3.get(0).getSide());
+        assertEquals("Child order ID 3 should be a sell order priced at 101", 101, childOrderId3.get(0).getPrice());
+        // assertEquals("Child order ID 3 should be filled after tick 4", OrderState.FILLED, childOrderId3.get(0).getState());
+    }
 
-    //     send(Tick1());
-    //     send(Tick2());
-    //     send(Tick3());
-    //     send(Tick4());
 
-    //     var state = container.getState();
-
-    //     List<ChildOrder> cancelledOrders = state.getChildOrders().stream()
-    //         .filter(order -> order.getState() == OrderState.CANCELLED)
-    //         .collect(Collectors.toList());
-
-    //     assertEquals("There should be one cancelled child order", 1, cancelledOrders.size());
-    // }
-
-    // @Test
-    // public void testLeastCompetitiveBidOrderId2GetsCancelledAfterTick4() throws Exception {
-
-    //     send(Tick1());
-    //     send(Tick2());
-    //     send(Tick3());
-    //     send(Tick4());
-
-    //     var state = container.getState();
-
-    //     List<ChildOrder> cancelledOrders = state.getChildOrders().stream()
-    //         .filter(order -> order.getState() == OrderState.CANCELLED)
-    //         .collect(Collectors.toList());
-
-    //     assertEquals("The canceled child order should be order Id 2", 2, cancelledOrders.get(0).getOrderId());
-
-    // }
-    
 }
         //when: market data moves towards us
         // send(Tick2());

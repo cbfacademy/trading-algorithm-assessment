@@ -600,33 +600,27 @@ public class MyAlgoLogic implements AlgoLogic {
                 logger.info("Currently own shares and have 0 active ask orders, placing an ask order at target profit price");
                 return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getTargetChildAskOrderPrice());
             }
-          
+    
             // when currently have 1 active ask order
             if (getActiveChildAskOrdersList().size() == 1) {
 
-                // as long as the average entry price is below best ask in current tick
-                if (getAverageEntryPrice() < getBestAskPriceInCurrentTick()) {
-
-                    if (regularSpread) {
-                        // place a passive ask order above best ask order price
-                        logger.info("Currently own shares, have 1 active ask order and spread is regular, placing an ask order above best ask");
-                        return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getBestAskPriceInCurrentTick() + 1));
-                    }
-
-                    // If spread is wide, place a child ask order joining best ask price on order book
-                    if (wideSpread) {
-                        logger.info("Currently own shares, have 1 active ask order and spread is wide, placing an ask order to join best ask");
-                        return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), (getBestAskPriceInCurrentTick()));
-                    }
-                    // If spread is narrow, and best ask is above average entry price, place child ask order to pay the spread to execute immediately
-                    if (tightSpread && getAverageEntryPrice() < getBestBidPriceInCurrentTick()) {
-                        logger.info("Currently own shares, have 1 active ask order, spread is narrow and best bid is above average entry price. Placing an at-market ask order to execute immediately");
-                        return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), getBestBidPriceInCurrentTick()); 
-                    }
+                if (regularSpread) {
+                    // place a passive ask order above best ask order price
+                    logger.info("Currently own shares, have 1 active ask order and spread is regular, placing an ask order above best ask");
+                    return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getBestAskPriceInCurrentTick() + 1));
                 }
 
-            }  
-        
+                // If spread is wide, place a child ask order joining best ask price on order book
+                if (wideSpread) {
+                    logger.info("Currently own shares, have 1 active ask order and spread is wide, placing an ask order to join best ask");
+                    return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), (getBestAskPriceInCurrentTick()));
+                }
+                // If spread is narrow, place child ask order to pay the spread to execute immediately
+                if (tightSpread) {
+                    logger.info("Currently own shares, have 1 active ask order and spread is narrow. Placing an at-market ask order to execute immediately");
+                    return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), getBestBidPriceInCurrentTick()); 
+                }
+            }        
         
         }
 
@@ -654,7 +648,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
         } 
 
-        logger.info("No buy or sellconditions met, no Action, hold position");
+        logger.info("No buy or sell conditions met, no Action, hold position");
         return NoAction.NoAction;
     }
 }     
