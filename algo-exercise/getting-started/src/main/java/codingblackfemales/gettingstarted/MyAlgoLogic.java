@@ -628,26 +628,33 @@ public class MyAlgoLogic implements AlgoLogic {
         // PLACING BID ORDERS 
         
         // when currently have 0 active bid orders
+        if (getHaveActiveBidOrders() == false) {
+            // place a passive bid order below current best bid in the hope of getting a bargain
+            logger.info("Currently have 0 active bid orders, placing a bid order priced 1 tick below current best bid");
+            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 1));
+        }
 
-        if (getHaveActiveBidOrders() == false) { 
-            //if spread is wide, place a passive child order bid 1 tick above best bid to narrow the spread and (hopefully!) prompt trading
-            if (wideSpread) {
-                logger.info("Currently have 0 active bid orders and spread is wide, placing a bid order above current best bid");
-                return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + 1));
+        // when currently have 1 active bid order
+        if (getActiveChildBidOrdersList().size() == 1) {
+
+            
+                // if spread is wide, place a passive child order bid priced 1 tick above best bid to narrow the spread and (hopefully!) prompt trading
+                if (wideSpread) {
+                    logger.info("Currently have 1 active bid order and spread is wide, placing a bid order above current best bid");
+                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + 1));
+                }
+                // if spread is regular, place a passive child bid order joining best bid price
+                if (regularSpread) {
+                    logger.info("Currently have 1 active bid order and spread is regular, placing a bid order joining current best bid");
+                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick()));
+                }
+                // if spread is tight, place an at-market child bid order paying the spread to buy immediately
+                if (tightSpread) {
+                    logger.info("Currently have 1 active bid order and spread is tight, paying the spread to place an at-market bid order to execute immediately");
+                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick()));
+                }  
+
             }
-            // if spread is regular, place a passive child bid order joining best bid price
-            if (regularSpread) {
-                logger.info("Currently have 0 active bid orders and spread is regular, placing a bid order joining current best bid");
-                return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick()));
-            }
-            // if spread is tight, place an at-market child bid order paying the spread to buy immediately
-            if (tightSpread) {
-                logger.info("Currently have 0 active bid orders and spread is tight, paying the spread to place an at-market bid order to execute immediately");
-                return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick()));
-            }  
-
-        } 
-
         logger.info("No buy or sell conditions met, no Action, hold position");
         return NoAction.NoAction;
     }
