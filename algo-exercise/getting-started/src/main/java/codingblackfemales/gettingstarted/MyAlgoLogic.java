@@ -198,7 +198,7 @@ public class MyAlgoLogic implements AlgoLogic {
     private int filledStateSize(SimpleAlgoState state) {
         final var filledState = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).toList();
 
-        return filledState.size();
+        return filledState.size(); z
     }
 }
 
