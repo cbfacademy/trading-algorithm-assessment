@@ -66,10 +66,10 @@ public class MyAlgoLogic implements AlgoLogic {
             logger.info("[MYALGO] Bid-Ask Spread percentage is less than " + targetSpreadLimit + "%. Market is liquid. Evaluating child orders...");
             childOrderLog(state);
 
-            int filledStateSize = filledStateSize(state);
+            int filledBuyStateSize = filledBuyStateSize(state);
 
-           if (filledStateSize < 2) {//Before creating competitive buy or sell orders a VWAP benchmark calculated from two a minimum of  filled orders needs to be attained
-                logger.info("[MYALGO] Have: " + filledStateSize + " filled orders. Adding aggressive buy order: " + bestAskQuantity + " @ " + bestAskPrice);
+            if (filledBuyStateSize < 2) {//Before creating competitive buy or sell orders a VWAP benchmark calculated from two a minimum of  filled orders needs to be attained
+                logger.info("[MYALGO] Have: " + filledBuyStateSize + " filled orders. Adding aggressive buy order: " + bestAskQuantity + " @ " + bestAskPrice);
                 return new CreateChildOrder(Side.BUY, bestAskQuantity, bestAskPrice);
             } else {
                 logger.info("[MYALGO] Achieved " + minimumFilledOrderQuantity + " Filled Order minimum. Evaluating conditions for competitive orders...");
@@ -83,24 +83,28 @@ public class MyAlgoLogic implements AlgoLogic {
 
             final var buyOrders = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList();
             final var sellOrders = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList();
+            long sharesRemainingToSell=calculateSharesRemainingtoSell(state);
+            long inlineSellVolume=sellVolume(state);
 
             logger.info("[MYALGO] VWAP calculated as: " + VWAP + ", Volume Imbalance indicating: " + volumeImbalanceOutput);
             boolean createBuyOrder = false;
             boolean createSellOrder = false;
-            if (buyOrders.size() < 5 && (bestBidPrice <= VWAP && volumeImbalanceOutput.contains("NEGATIVE"))) {
+
+
+            if (filledBuyStateSize < 5 && (bestBidPrice <= VWAP && volumeImbalanceOutput.contains("NEGATIVE"))) {
                 logger.info("[MYALGO] Have " + buyOrders.size() + " buy orders. VWAP and Volume Imbalance conditions have been met. Adding buy order for " + bestBidQuantity + " @ " + bestBidPrice);
                 createBuyOrder = true; //create buy order if volume imbalance indicates as negative as it indicates an imminent drop in midpoint due to increased selling pressure.
 
             }
-            if (sellOrders.size() < 5 && (bestAskPrice >= VWAP && volumeImbalanceOutput.contains("POSITIVE"))) {
-                logger.info("[MYALGO] Have " + sellOrders.size() + " sell orders. VWAP and Volume Imbalance conditions have been met. Adding sell order for " + bestAskQuantity + " @ " + bestAskPrice);
+            if (sharesRemainingToSell > 0 && (bestAskPrice >= VWAP && volumeImbalanceOutput.contains("POSITIVE"))) {
+                logger.info("[MYALGO] Have " + sellOrders.size() + " sell orders. VWAP and Volume Imbalance conditions have been met. Adding sell order for " + bestAskQuantity + " @ " + inlineSellVolume);
                 createSellOrder = true; //create sell order if volume indicates as positive as it indicates an imminent increase in midpoint due to increased buying pressure.
             }
             if (createBuyOrder) {
                 return new CreateChildOrder(Side.BUY, bestBidQuantity, bestBidPrice);
             }
             if (createSellOrder) {
-                return new CreateChildOrder(Side.SELL, bestAskQuantity, bestAskPrice);
+                return new CreateChildOrder(Side.SELL, inlineSellVolume, bestAskPrice);
             }
             logger.info("[MYALGO] Conditions for Buy or Sell orders have not been met. No action taken.");
             return NoAction.NoAction;
@@ -148,7 +152,7 @@ public class MyAlgoLogic implements AlgoLogic {
             totalPriceQuantity += order.getQuantity() * order.getPrice();
 
         }
-        return ( double) quantity == 0 ? 0 : totalPriceQuantity / quantity;
+        return (double) quantity == 0 ? 0 : totalPriceQuantity / quantity;
 
     }
 
@@ -160,7 +164,7 @@ public class MyAlgoLogic implements AlgoLogic {
     }
 
 
-    private String analyzedVolumeImbalance(double volumeImbalance){
+    private String analyzedVolumeImbalance(double volumeImbalance) {
 
         String formattedVolumeImbalance = String.format("%.2f", volumeImbalance);
 
@@ -178,7 +182,8 @@ public class MyAlgoLogic implements AlgoLogic {
         }
 
     }
-    private String volumeImbalanceIndicator(SimpleAlgoState state){
+
+    private String volumeImbalanceIndicator(SimpleAlgoState state) {
         double volumeImbalance = calculateVolumeImbalance(state);
         return analyzedVolumeImbalance(volumeImbalance);
     }
@@ -191,16 +196,56 @@ public class MyAlgoLogic implements AlgoLogic {
         final var buyOrders = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList();
         final var sellOrders = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList();
         final var filledQuantity = state.getChildOrders().stream().filter(order -> order.getFilledQuantity() > 0).count();//profit?
+        final  var profit =profitTracker(state);
+        logger.info("profit"+profit);
         logger.info("filled count " + filledQuantity);
-        logger.info("[MYALGO] Child Order Log Count: Filled=" + filledState.size() + " ,Pending=" + pendingState.size() + " ,Cancelled=" + cancelledState.size()+ " ,activeBuy=" + buyOrders.size()+ " ,activeSell=" + sellOrders.size());
+        logger.info("[MYALGO] Child Order Log Count: Filled=" + filledState.size() + " ,Pending=" + pendingState.size() + " ,Cancelled=" + cancelledState.size() + " ,activeBuy=" + buyOrders.size() + " ,activeSell=" + sellOrders.size());
     }
 
-    private int filledStateSize(SimpleAlgoState state) {
-        final var filledState = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).toList();
+    private int filledBuyStateSize(SimpleAlgoState state) {
+        final var filledBuyState = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.BUY).toList();
 
-        return filledState.size(); z
+        return filledBuyState.size();
+
+    }
+
+    private long calculateTotalExecutedVolume(SimpleAlgoState state) {
+        return state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).mapToLong(order -> order.getFilledQuantity()).sum();
+
+    }
+
+    private long calculateSharesRemainingtoSell(SimpleAlgoState state) {
+        long filledBuyVolume = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.BUY).mapToLong(order -> order.getFilledQuantity()).sum();
+        long filledSellVolume = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.SELL).mapToLong(order -> order.getFilledQuantity()).sum();
+        return filledSellVolume == 0 ? filledBuyVolume : filledBuyVolume - filledSellVolume;
+
+    }
+
+    private long sellVolume(SimpleAlgoState state) {
+        long volumeInlineSellQuantity = (long) (calculateTotalExecutedVolume(state) * 0.20);
+        long sharesRemainingToSell = calculateSharesRemainingtoSell(state);
+        return Math.min(volumeInlineSellQuantity, sharesRemainingToSell);
+
+    }
+
+    private double profitTracker(SimpleAlgoState state) {
+        final var totalSpent = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.BUY).toList();
+        final var totalSold = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.SELL).toList();
+
+        long totalBuyPriceQuantity = 0;
+        long totalSellPriceQuantity = 0;
+        for (ChildOrder order : totalSpent) {
+            totalBuyPriceQuantity += order.getQuantity() * order.getPrice();
+        }
+        for (ChildOrder order : totalSold) {
+            totalSellPriceQuantity += order.getQuantity() * order.getPrice();
+        }
+
+        return (double) totalSellPriceQuantity - totalBuyPriceQuantity;
     }
 }
+
+
 
 
 
