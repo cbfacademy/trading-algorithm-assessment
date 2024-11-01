@@ -12,7 +12,7 @@ import static org.junit.Assert.assertTrue;
 import codingblackfemales.sotw.ChildOrder;
 
 //how i understand the backtesting for trading algos is that they tie all the algo functions into one to show how
-// they would function togther to form a robust and profitable system that effectively handles past market conditions
+// they would function together to form a robust and profitable system that effectively handles past market conditions
 // so i have my original createTick triggering SMA calc and buy logic. after this, my sell logic kicks in
 // to make profit... then stop-loss to minimise loss during bear mkt as well as a check for my exit condition
 
@@ -70,7 +70,6 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
             assertEquals("The filled buy quantity should be 225", 225, filledBuyQuantity);
 
 
-
             // Check for sell orders, expecting 2
             long sellOrdersCount = state.getChildOrders().stream()
                     .filter(order -> order.getSide() == Side.SELL) // this Filters for only sell orders like in my unit test
@@ -95,7 +94,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
             // Assert that the total number of child orders does not exceed 20
             assertTrue("The algorithm should never place more than 20 orders", childOrdersCount <= 20);
 
-            // Catch and log any NullPointerExceptions that occur during the stop-loss logic
+            // Catch and log any NullPointerExceptions that occur due to the stop-loss logic
         } catch (NullPointerException e) {
             System.out.println("A NullPointerException occurred: " + e.getMessage());
         }
