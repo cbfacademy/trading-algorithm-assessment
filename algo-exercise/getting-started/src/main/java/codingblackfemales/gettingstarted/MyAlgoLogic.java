@@ -240,7 +240,7 @@ public class MyAlgoLogic implements AlgoLogic {
         double totalBuyPriceQuantity =  totalSpent.stream().mapToDouble(order -> order.getQuantity() * order.getPrice()).sum();
         double totalSellPriceQuantity = totalSold.stream().mapToDouble(order -> order.getQuantity() * order.getPrice()).sum();
         double profit = totalSellPriceQuantity - totalBuyPriceQuantity;
-        logger.info("[MYALGO] Revenue Tracker: Bought= " + totalBuyPriceQuantity + " ,Sold= " + totalSellPriceQuantity + " ,Profit= " + profit + " ,shares bought= "+filledBuyVolume +  " ,shares sold= " + filledSellVolume +  " ,shares remaining= " + sharesRemaining );
+        logger.info("[MYALGO] Revenue Tracker: Bought= " + totalBuyPriceQuantity + " ,Sold= " + totalSellPriceQuantity + " ,Profit= " + profit + " ,Shares bought= "+filledBuyVolume +  " ,Shares sold= " + filledSellVolume +  " ,Shares remaining= " + sharesRemaining );
     }
 }
 
