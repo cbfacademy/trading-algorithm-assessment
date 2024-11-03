@@ -24,7 +24,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
     private static final Logger logger = LoggerFactory.getLogger(MyAlgoLogic.class);
     
-    private int marketDataTickCount = 0;
+    private int evaluateMethodCallCount = 0;
 
     // DATA ABOUT THE CURRENT MARKET TICK
 
@@ -394,8 +394,8 @@ public class MyAlgoLogic implements AlgoLogic {
 
         var orderBookAsString = Util.orderBookToString(state);
 
-        logger.info("[MYALGO] THIS IS TICK NUMBER: " + marketDataTickCount + "\n");
-        marketDataTickCount += 1;
+        logger.info("[MYALGO] THIS IS EVALUATE METHOD CALL NUMBER: " + evaluateMethodCallCount + "\n");
+        evaluateMethodCallCount += 1;
 
         logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
 
