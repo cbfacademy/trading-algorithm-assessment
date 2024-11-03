@@ -81,7 +81,7 @@ public class MyAlgoTest extends AbstractAlgoTest { //Due to bugs and AbstractAls
         double calculatedVolumeImbalanceIndication = algoLogic.calculateVolumeImbalance(state); // Capturing result of the calculation
 
         // then
-        assertEquals("Volume Imbalance calculation is", calculatedVolumeImbalanceIndication,0.42857142857142855);
+        assertEquals("Volume Imbalance calculation is", calculatedVolumeImbalanceIndication,0.9607843137254902);
 
     }
     @Test

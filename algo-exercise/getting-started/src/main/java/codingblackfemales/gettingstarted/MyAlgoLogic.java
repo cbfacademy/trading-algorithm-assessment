@@ -15,6 +15,15 @@ import messages.order.Side;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/*Welcome to my High Frequency Trading Algorithm. This algorithm assesses the markets liquidity or volatility  the via
+ the spread to determine whether conditions are prime to buy or sell. If spread percentage is under the set target limit is
+recorded the algo will utilise a High Frequency Trading indicator named Volume imbalance and a VWAP benchmark to access market
+conditions to create child buy orders matching the price and volume of best bid and sell shares at best ask with a volume of 20%
+of the total market volume traded. When the target spread is not met active child orders will be cancelled depending on whether they
+ meet the best bid or ask.
+ */
+
+
 
 public class MyAlgoLogic implements AlgoLogic {
 
@@ -59,7 +68,8 @@ public class MyAlgoLogic implements AlgoLogic {
         logger.info("[MYALGO] Bid-ask spread percentage is: " + String.format("%.2f", bidAskSpreadPercentage) + "%");
         final int minimumFilledOrderQuantity = 2;
         final double targetSpreadLimit = 4.5; //preferably would be set to under 1% when executing high frequency trading strategies
-        //based on research real life markets prefer spread of less than 1% when executing high frequency trading strategies. However, to accommodate the order book data provided I have set a target spread limit of 4.5%
+        /*based on research, real life markets prefer spread of less than 1% when executing high frequency trading strategies.
+        However, to accommodate the order book data provided I have set a target spread limit of 4.5%*/
 
 
         if (bidAskSpreadPercentage < targetSpreadLimit) {
@@ -69,7 +79,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
             int filledBuyStateSize = filledBuyStateSize(state);
 
-            if (filledBuyStateSize < minimumFilledOrderQuantity) {//Before creating competitive buy or sell orders a VWAP benchmark calculated from two a minimum of  filled orders needs to be attained
+            if (filledBuyStateSize < minimumFilledOrderQuantity) {//Before creating competitive buy or sell child orders a VWAP benchmark calculated from two a minimum of  filled orders needs to be attained
                 logger.info("[MYALGO] Have: " + filledBuyStateSize + " filled orders. Adding aggressive buy order: " + bestAskQuantity + " @ " + bestAskPrice);
                 return new CreateChildOrder(Side.BUY, bestAskQuantity, bestAskPrice);
             } else {
@@ -94,12 +104,12 @@ public class MyAlgoLogic implements AlgoLogic {
 
             if (filledBuyStateSize < 5 && (bestBidPrice <= VWAP && volumeImbalanceOutput.contains("NEGATIVE"))) {
                 logger.info("[MYALGO] Have " + buyOrders.size() + " buy orders. VWAP and Volume Imbalance conditions have been met. Adding buy order for " + bestBidQuantity + " @ " + bestBidPrice);
-                createBuyOrder = true; //create buy order if volume imbalance indicates as negative as it indicates an imminent drop in midpoint due to increased selling pressure.
+                createBuyOrder = true; //create buy child order if volume imbalance indicates as negative as it indicates an imminent drop in midpoint due to increased selling pressure.
 
             }
             if (sharesRemainingToSell > 0 && (bestAskPrice >= VWAP && volumeImbalanceOutput.contains("POSITIVE"))) {
                 logger.info("[MYALGO] Have " + sellOrders.size() + " sell orders. VWAP and Volume Imbalance conditions have been met. Adding sell order for " + bestAskQuantity + " @ " + sellMarketVolumeInline);
-                createSellOrder = true; //create sell order if volume indicates as positive as it indicates an imminent increase in midpoint due to increased buying pressure.
+                createSellOrder = true; //create sell child order if volume imbalance indicates as positive as it indicates an imminent increase in midpoint due to increased buying pressure.
             }
             if (createBuyOrder) {
                 return new CreateChildOrder(Side.BUY, bestBidQuantity, bestBidPrice);
@@ -115,7 +125,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
             childOrderLog(state);
             profitTracker(state);
-            for (ChildOrder orders : state.getActiveChildOrders()) {//will cancel the first non-viable active child older
+            for (ChildOrder orders : state.getActiveChildOrders()) {//will cancel the first non-viable active child older if not meeting best bid and ask due to no longer being competitive
                 if (orders.getSide().equals(Side.BUY) && orders.getState() != OrderState.FILLED && orders.getPrice() != bestBidPrice) {
                     logger.info("[MYALGO] Cancelling non-viable buy order: ID = " + orders.getOrderId() + ", Quantity = " + orders.getQuantity() + ", Price = " + orders.getPrice());
                     return new CancelChildOrder(orders);
@@ -149,6 +159,10 @@ public class MyAlgoLogic implements AlgoLogic {
 
         double quantity = filledState.stream().mapToDouble(ChildOrder::getFilledQuantity).sum();
         double totalPriceQuantity = filledState.stream().mapToDouble(order -> order.getFilledQuantity() * order.getPrice()).sum();
+
+//        long quantity = 0;
+//        long totalPriceQuantity = 0;
+
 
 //        for (ChildOrder order : filledState) {
 //            quantity += order.getFilledQuantity();
@@ -201,7 +215,7 @@ public class MyAlgoLogic implements AlgoLogic {
         final var cancelledState = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.CANCELLED).toList();
         final var filledQuantity = state.getChildOrders().stream().filter(order -> order.getFilledQuantity() > 0).count();//profit?
         logger.info("filled count " + filledQuantity);
-        logger.info("[MYALGO] Child Order Log Count: Filled Buy=" + filledBuyState.size() + " ,Filled Sell=" + filledSellState.size()+" ,Pending Buy=" + pendingBuyState.size() + " ,Pending Sell=" + pendingSellState.size() +" ,Cancelled=" + cancelledState.size());
+        logger.info("[MYALGO] Child Order Log Count: Filled Buy=" + filledBuyState.size() + ", Filled Sell=" + filledSellState.size()+", Pending Buy=" + pendingBuyState.size() + ", Pending Sell=" + pendingSellState.size() +", Cancelled=" + cancelledState.size());
     }
 
     private int filledBuyStateSize(SimpleAlgoState state) {
@@ -240,7 +254,7 @@ public class MyAlgoLogic implements AlgoLogic {
         double totalBuyPriceQuantity =  totalSpent.stream().mapToDouble(order -> order.getQuantity() * order.getPrice()).sum();
         double totalSellPriceQuantity = totalSold.stream().mapToDouble(order -> order.getQuantity() * order.getPrice()).sum();
         double profit = totalSellPriceQuantity - totalBuyPriceQuantity;
-        logger.info("[MYALGO] Revenue Tracker: Bought= " + totalBuyPriceQuantity + " ,Sold= " + totalSellPriceQuantity + " ,Profit= " + profit + " ,Shares bought= "+filledBuyVolume +  " ,Shares sold= " + filledSellVolume +  " ,Shares remaining= " + sharesRemaining );
+        logger.info("[MYALGO] Revenue Tracker: Bought=" + totalBuyPriceQuantity + ", Sold=" + totalSellPriceQuantity +", Profit=" + profit + ", Shares bought=" +filledBuyVolume +  ", Shares sold=" + filledSellVolume +  ", Shares remaining=" + sharesRemaining );
     }
 }
 
