@@ -25,6 +25,8 @@ public class MyAlgoLogic implements AlgoLogic {
     private static final Logger logger = LoggerFactory.getLogger(MyAlgoLogic.class);
     
     private int evaluateMethodCallCount = 0;
+    private int bidPriceDifferentiator = -3;
+
 
     // DATA ABOUT THE CURRENT MARKET TICK
 
@@ -121,6 +123,12 @@ public class MyAlgoLogic implements AlgoLogic {
         return totalQuantityOfAskOrdersInCurrentTick;
     }
 
+    // booleans for analysing the volume of sellers and buyers
+    private boolean sellPressure = false;
+    private boolean buyPressure = false;
+    private boolean marketEquilibirum = false;
+     
+    private String supplyAndDemandStatus = "";
 
     // variables to store data from the current tick - THE SPREAD AND MIDPRICE
     private long theSpreadInCurrentTick;
@@ -278,7 +286,7 @@ public class MyAlgoLogic implements AlgoLogic {
     }
 
     private void setStopLoss() {
-        stopLoss = (long) Math.ceil(getAverageEntryPrice() * 0.99);
+        stopLoss = (long) Math.ceil(getAverageEntryPrice() * 0.98);
     }
 
     public double getStopLoss() { // top 10 // TODO - TEST THIS METHOD
@@ -389,6 +397,23 @@ public class MyAlgoLogic implements AlgoLogic {
         return totalProfitOrLoss;
     }
 
+    public long getTotalFilledQuantityOfAllBidAndAskOrders() {  // TODO - TEST THIS METHOD  
+        return getTotalFilledBidQuantity() + getTotalFilledAskQuantity();
+    }
+
+    private long VWAP;
+
+    private void setVWAP() {        
+        VWAP = getAllChildOrdersList().stream()
+            .filter(order -> order.getFilledQuantity() > 0)
+            .mapToLong(order -> order.getFilledQuantity() * order.getPrice())
+            .sum() / getTotalFilledQuantityOfAllBidAndAskOrders();
+    }
+    
+    public long getVWAP() { // top 10 // TODO - TEST THIS METHOD
+        return VWAP;
+    }
+
     @Override
     public Action evaluate(SimpleAlgoState state) {
 
@@ -441,8 +466,9 @@ public class MyAlgoLogic implements AlgoLogic {
         // UPDATE DATA ABOUT CURRENT MARKET DATA TICK - SPREAD AND MID PRICE
         theSpreadInCurrentTick = getBestAskPriceInCurrentTick() - getBestBidPriceInCurrentTick();
         midPriceInCurrentTick = (getBestAskPriceInCurrentTick() + getBestBidPriceInCurrentTick()) / 2;
-        relativeSpreadInCurrentTick = Math.round((theSpreadInCurrentTick / midPriceInCurrentTick * 100) * 100 / 100); // rounded to 2dp
+        relativeSpreadInCurrentTick = Math.round((getTheSpreadInCurrentTick() / getMidPriceInCurrentTick() * 100) * 100 / 100); // rounded to 2dp
     
+        
         // ANALYSING THE SPREAD
         if (getRelativeSpreadInCurrentTick() < 2) {
             tightSpread = true;
@@ -450,6 +476,20 @@ public class MyAlgoLogic implements AlgoLogic {
                 regularSpread = true;
         } else {
             wideSpread = true;
+        };
+
+
+        // ANALYSING SUPPLY AND DEMAND - TODO TEST THIS
+        if (getTotalQuantityOfAskOrdersInCurrentTick() > (long)(getTotalQuantityOfBidOrdersInCurrentTick() * 1.5)) {
+            sellPressure = true;
+            supplyAndDemandStatus = "There are more sellers than buyers.";
+        } else if (getTotalQuantityOfBidOrdersInCurrentTick() > (long)(getTotalQuantityOfAskOrdersInCurrentTick() * 1.5)) {
+            buyPressure = true;
+            supplyAndDemandStatus = "There are more buyers than sellers.";
+        } else {
+            marketEquilibirum = true;
+            supplyAndDemandStatus = "Buyer and seller numbers are equal or relatively close.";
+
         };
     
 
@@ -539,6 +579,11 @@ public class MyAlgoLogic implements AlgoLogic {
         setChildBidOrderQuantity();
         setTotalProfitOrLoss();
 
+        if (getTotalFilledQuantityOfAllBidAndAskOrders() > 0) {
+            setVWAP();
+        }
+        
+
         if (getNumOfSharesOwned() > 0) {
             haveShares = true;
         }
@@ -556,107 +601,158 @@ public class MyAlgoLogic implements AlgoLogic {
         logger.info("getTotalRevenue() is: " + getTotalRevenue());
         logger.info("getNumOfSharesOwned() is: " + getNumOfSharesOwned());
         logger.info("getTotalProfitOrLoss() is: " + getTotalProfitOrLoss());
+        logger.info("getVWAP() is: " + getVWAP());
+
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
 
-        // EXIT CONDITION
+        // EXIT CONDITION - UP TO A MAX OF 6 CHILD ORDERS
 
-        if (allChildOrdersList.size() > 8) {
-            logger.info("(allChildOrdersList.size() > 8) condiition met, taking no action");
-            return NoAction.NoAction;
-        }
+        if (getAllChildOrdersList().size() < 6) {
 
-        // CANCELLING ORDERS
+            logger.info("Currently own " + getNumOfSharesOwned() + " shares.");
+            logger.info(supplyAndDemandStatus);
+            logger.info("The relative spread is: " + getRelativeSpreadInCurrentTick());
 
-        // If have 0 shares left and have active ask orders, cancel all sell orders
-        if ((getHaveShares() == false) && getHaveActiveAskOrders()) {
-            logger.info(" ((getHaveShares() == false) && getHaveActiveAskOrders()) condition met, cancelling all sell orders");
-            return new CancelChildOrder(getActiveChildAskOrdersList().get(0));
-        }
-        
 
-        // If a child ask order becomes uncompetitive, cancel it
-        if (getHaveActiveAskOrders() && (getActiveChildAskOrderWithHighestPrice().getPrice() >= (getBestAskPriceInCurrentTick() + 7))) {
-            logger.info("(getHaveActiveAskOrders() && (getActiveChildAskOrderWithHighestPrice().getPrice() >= (getBestAskPriceInCurrentTick() + 7))) condition met, cancelling least competitive ask order");
-            return new CancelChildOrder(getActiveChildAskOrderWithHighestPrice());
-        }
+            // CANCELLING ORDERS
 
-        // If a child buy order becomes uncompetitive, cancel it
-        if (getHaveActiveBidOrders() && (getActiveChildBidOrderWithLowestPrice().getPrice() <= (getBestBidPriceInCurrentTick() - 7))) {
-            logger.info("(getHaveActiveBidOrders() && (getActiveChildBidOrderWithLowestPrice().getPrice() <= (getBestBidPriceInCurrentTick() - 7))) met, cancelling least competitive bid order");
-            return new CancelChildOrder(getActiveChildBidOrderWithLowestPrice());
-        }
-        
-        // PLACING ASK ORDERS
-        
-
-        if (getHaveShares()) {
-                    
-            // when currently have 0 active ask orders
-            if (getHaveActiveAskOrders() == false) {
-
-                // place a passive ask order at profit target price for full amount of shares owned
-                logger.info("Currently own shares and have 0 active ask orders, placing an ask order at target profit price");
-                return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getTargetChildAskOrderPrice());
+            // If have 0 shares left and have active ask orders, cancel all sell orders
+            if ((getHaveShares() == false) && getHaveActiveAskOrders()) {
+                logger.info("Have 0 shares but have active ask orders, cancelling all sell orders");
+                return new CancelChildOrder(getActiveChildAskOrdersList().get(0));
             }
+
+            // If a child ask order becomes uncompetitive, cancel it
+            if (getHaveActiveAskOrders() && (getActiveChildAskOrderWithHighestPrice().getPrice() >= (getBestAskPriceInCurrentTick() + 5))) {
+                logger.info("An active child ask order has become too uncompetitive, cancelling it");
+                return new CancelChildOrder(getActiveChildAskOrderWithHighestPrice());
+            }
+
+            // If a child buy order becomes uncompetitive, cancel it
+            if (getHaveActiveBidOrders() && (getActiveChildBidOrderWithLowestPrice().getPrice() <= (getBestBidPriceInCurrentTick() - 5))) {
+                logger.info("An active child bid order has become too uncompetitive, cancelling it");
+                return new CancelChildOrder(getActiveChildBidOrderWithLowestPrice());
+            }
+
+
+            // PLACING ASK ORDERS
+
+            if (getHaveShares()) {
+
+                // if VWAP hits stop loss price, sell everything
+                if (getVWAP() <= getStopLoss()) {
+                    if (getNumOfSharesOwned() > 0) {
+                    logger.info("VWAP has hit stop loss price, selling all shares for best price possible");
+                    return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getBestBidPriceInCurrentTick());
+                    }   
+                }
+
+                // first ask order
+
+                if (getHaveActiveAskOrders() == false ) {
+                    logger.info("Placing an ask order at target profit price");
+                    return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getTargetChildAskOrderPrice());
+                }
+                
+                // second ask order
+                if ((getActiveChildAskOrdersList().size() >= 1) && (getActiveChildAskOrdersList().size() < 2)) {
+                    logger.info("placing a passive ask order above current highest ask order");
+                    return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getActiveChildAskOrderWithHighestPrice().getPrice() + 1));
+                }
+                
+                // third ask order
+                if ((getActiveChildAskOrdersList().size() >= 2) && (getActiveChildAskOrdersList().size() < 3) 
+                && (getTargetChildAskOrderPrice() >= getBestAskPriceInCurrentTick())) {
+
+                    if ((tightSpread && sellPressure) || (tightSpread && marketEquilibirum)) {
+                        logger.info("Placing an at-market ask order to pay the spread and execute immediately");
+                            return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getBestBidPriceInCurrentTick());
+                    }
+
+                    if ((wideSpread && sellPressure) || (wideSpread && marketEquilibirum) || (regularSpread && sellPressure)) {
+                        logger.info("Placing an ask order 1 tick size below current best ask price, narrowing the spread.");
+                            return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getBestAskPriceInCurrentTick() - 1));
+                    }
+
+                    if ((regularSpread && marketEquilibirum) || (wideSpread && buyPressure)) {
+                        logger.info("Placing an ask order to join current best ask price");
+                        return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getBestAskPriceInCurrentTick());
+                    }
+
+                    if (tightSpread && buyPressure) {
+                        logger.info("Placing an ask order 1 tick size above current best ask price");
+                            return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getBestAskPriceInCurrentTick() + 1));
+                    }
+                }
+
+                
+
+            }
+        
+            // PLACING BID ORDERS 
+                
+            // place 3 bid orders
+            if (getActiveChildBidOrdersList().size() < 3) { 
+
+                logger.info("Currently have " + getActiveChildBidOrdersList().size() + " active bid orders");
+
+                bidPriceDifferentiator += 1;
+                if ((tightSpread && buyPressure) || (tightSpread && marketEquilibirum) ){
+                    logger.info(" Placing 3 bid orders, the highest of which is an at-market bid order paying the spread to execute immediately.");
+                        return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick() + bidPriceDifferentiator));
+                
+                } else if ((wideSpread && buyPressure) || (wideSpread && marketEquilibirum) || (regularSpread && buyPressure) ){
+                    logger.info(" Placing 3 bid orders, the highest of which will be 1 tick above current best bid price, narrowing the spread.");
+                        return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + 1 + bidPriceDifferentiator));
+
+                } else if ((wideSpread && sellPressure) || (regularSpread && marketEquilibirum) || (regularSpread && sellPressure) ){
+                    logger.info(" Placing 3 bid orders, the highest of which will join the best bid price.");
+                        return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + bidPriceDifferentiator));
+
+                } else if (tightSpread && sellPressure) {
+                    logger.info("Placing 3 orders, the highest of which will be 1 tick size less than the best bid price.");
+                        return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 1 + bidPriceDifferentiator));
+                }
+            }
+            logger.info("No buy or sell conditions met, hold position until next market data tick");
+            return NoAction.NoAction;
+        } else {
+            logger.info("Have 6 child orders in total, taking no further action");
+            return NoAction.NoAction;
+        } 
+        
+    }
+}
+
     
-            // when currently have 1 active ask order
-            if (getActiveChildAskOrdersList().size() == 1) {
-
-                if (regularSpread) {
-                    // place a passive ask order above best ask order price
-                    logger.info("Currently own shares, have 1 active ask order and spread is regular, placing an ask order above best ask");
-                    return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getBestAskPriceInCurrentTick() + 1));
-                }
-
-                // If spread is wide, place a child ask order joining best ask price on order book
-                if (wideSpread) {
-                    logger.info("Currently own shares, have 1 active ask order and spread is wide, placing an ask order to join best ask");
-                    return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), (getBestAskPriceInCurrentTick()));
-                }
-                // If spread is narrow, place child ask order to pay the spread to execute immediately
-                if (tightSpread) {
-                    logger.info("Currently own shares, have 1 active ask order and spread is narrow. Placing an at-market ask order to execute immediately");
-                    return new CreateChildOrder(Side.SELL, (long)(getNumOfSharesOwned()), getBestBidPriceInCurrentTick()); 
-                }
-            }        
         
-        }
 
 
-        // PLACING BID ORDERS 
+
+//         
         
-        // when currently have 0 active bid orders
-        if (getHaveActiveBidOrders() == false) {
-            // place a passive bid order below current best bid in the hope of getting a bargain
-            logger.info("Currently have 0 active bid orders, placing a bid order priced 1 tick below current best bid");
-            return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 1));
-        }
-
-        // when currently have 1 active bid order
-        if (getActiveChildBidOrdersList().size() == 1) {
+//         // place 3 bid orders
+//         if (getActiveChildBidOrdersList().size() < 3) {
+//                 int priceDifferentiator = -3;
 
             
-                // if spread is wide, place a passive child order bid priced 1 tick above best bid to narrow the spread and (hopefully!) prompt trading
-                if (wideSpread) {
-                    logger.info("Currently have 1 active bid order and spread is wide, placing a bid order above current best bid");
-                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + 1));
-                }
-                // if spread is regular, place a passive child bid order joining best bid price
-                if (regularSpread) {
-                    logger.info("Currently have 1 active bid order and spread is regular, placing a bid order joining current best bid");
-                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick()));
-                }
-                // if spread is tight, place an at-market child bid order paying the spread to buy immediately
-                if (tightSpread) {
-                    logger.info("Currently have 1 active bid order and spread is tight, paying the spread to place an at-market bid order to execute immediately");
-                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick()));
-                }  
+//                 // if spread is wide, place a passive child order bid priced 1 tick above best bid to narrow the spread and (hopefully!) prompt trading
+//                 if (wideSpread) {
+//                     logger.info("Currently have " + getActiveChildBidOrdersList().size() + " active bid orders and spread is wide, placing a bid order above current best bid");
+//                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() +));
+//                 }
+//                 // if spread is regular, place a passive child bid order joining best bid price
+//                 if (regularSpread) {
+//                     logger.info("Currently have 1 active bid order and spread is regular, placing a bid order joining current best bid");
+//                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick()));
+//                 }
+//                 // if spread is tight, place an at-market child bid order paying the spread to buy immediately
+//                 if (tightSpread) {
+//                     logger.info("Currently have 1 active bid order and spread is tight, paying the spread to place an at-market bid order to execute immediately");
+//                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick()));
+//                 }  
 
-            }
-        logger.info("No buy or sell conditions met, no Action, hold position");
-        return NoAction.NoAction;
-    }
-}     
+
 
