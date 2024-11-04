@@ -342,6 +342,21 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("Average entry price should evaluate to 98 after tick 2", 98, myAlgoLogic.getAverageEntryPrice());
     }
 
+
+    @Test
+    public void testMethodForSettingStopLossAfterTick2 () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
+        send(Tick2());
+
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
+
+        assertEquals("Stop loss should be 97 after tick 2", 97, myAlgoLogic.getStopLoss());
+    }
+
+    
     @Test
     public void testBooleanCheckForActiveChildAskOrdersEvaluatesToFalseAfterTick1() throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();

@@ -299,7 +299,7 @@ public class MyAlgoLogic implements AlgoLogic {
         stopLoss = (long) Math.ceil(getAverageEntryPrice() * 0.98);
     }
 
-    public double getStopLoss() { // top 10 // TODO - TEST THIS METHOD
+    public long getStopLoss() { // top 10 // TODO - TEST THIS METHOD
         return stopLoss;
     }
 
