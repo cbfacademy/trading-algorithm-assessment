@@ -6,6 +6,7 @@ import codingblackfemales.action.CreateChildOrder;
 import codingblackfemales.action.NoAction;
 import codingblackfemales.algo.AlgoLogic;
 import codingblackfemales.sotw.ChildOrder;
+import codingblackfemales.sotw.OrderState;
 import codingblackfemales.sotw.SimpleAlgoState;
 import codingblackfemales.sotw.marketdata.AbstractLevel;
 import codingblackfemales.util.Util;
@@ -73,7 +74,7 @@ public class MyAlgoLogic implements AlgoLogic {
         return totalQuantityOfBidOrdersInCurrentTick = sumOfAllInAListOfLongs(getQuantitiesOfTopBidOrdersInCurrentTick());
     }
 
-    public long getTotalQuantityOfBidOrdersInCurrentTick() { // to compare with total ask quantity to see if there is a buy or sell pressure
+    public long getTotalQuantityOfBidOrdersInCurrentTick() { 
         return totalQuantityOfBidOrdersInCurrentTick;
     }
 
@@ -123,7 +124,7 @@ public class MyAlgoLogic implements AlgoLogic {
         return totalQuantityOfAskOrdersInCurrentTick;
     }
 
-    // booleans for analysing the volume of sellers and buyers
+    // booleans for analysing the amount of sellers vs buyers
     private boolean sellPressure = false;
     private boolean buyPressure = false;
     private boolean marketEquilibirum = false;
@@ -185,7 +186,13 @@ public class MyAlgoLogic implements AlgoLogic {
 
 
     private void setChildBidOrderQuantity() {
-        childBidOrderQuantity = 100; // initial amount, then after trades execute, set to 10% of all filled orders for POV limit
+        // initial fixed amount of 100, then after trades execute, set to 10% of all filled orders for a POV limit
+        // should be 10% of all filled orders, not just child orders but only have child orders to work with
+        // if (getTotalFilledQuantityOfAllBidAndAskOrders() > 0) {
+        //     childBidOrderQuantity = (long) (getTotalFilledQuantityOfAllBidAndAskOrders() * 0.1);
+        // } else {
+            childBidOrderQuantity = 100; 
+        // }
     }
 
     public long getChildBidOrderQuantity() {
@@ -205,7 +212,7 @@ public class MyAlgoLogic implements AlgoLogic {
     // filtered lists of child orders - BUY SIDE
     // ACTIVE CHILD BID ORDERS
     private List<ChildOrder> activeChildBidOrdersList = new ArrayList();
-    private List<String> activeChildBidOrdersToStringList= new ArrayList<>(); //  for logging
+    private List<String> activeChildBidOrdersListToString = new ArrayList<>(); //  for logging
     private boolean haveActiveBidOrders = false;
     private ChildOrder activeChildBidOrderWithLowestPrice = null;
     private ChildOrder activeChildBidOrderWithHighestPrice = null;
@@ -214,8 +221,8 @@ public class MyAlgoLogic implements AlgoLogic {
         return activeChildBidOrdersList;
     }
 
-    public List<String> getActiveChildBidOrdersToStringList() { // for logging
-        return activeChildBidOrdersToStringList;
+    public List<String> getActiveChildBidOrdersListToString() { // for logging
+        return activeChildBidOrdersListToString;
     }
 
     public boolean getHaveActiveBidOrders() {
@@ -245,6 +252,9 @@ public class MyAlgoLogic implements AlgoLogic {
     private long numOfSharesOwned;
     private long stopLoss; 
 
+    public boolean getHaveFilledBidOrders(){
+        return haveFilledBidOrders;
+    }
 
     public List<ChildOrder> getFilledAndPartFilledChildBidOrdersList() { 
         return filledAndPartFilledChildBidOrdersList;
@@ -350,6 +360,10 @@ public class MyAlgoLogic implements AlgoLogic {
 
     public List<ChildOrder> getFilledAndPartFilledChildAskOrdersList() { // TODO - unit test
         return filledAndPartFilledChildAskOrdersList;
+    }
+
+    public List<String> getFilledAndPartFilledChildAskOrdersListToString() { // TODO - unit test
+        return filledAndPartFilledChildAskOrdersListToString;
     }
 
     private void setTotalFilledAskQuantity() {
@@ -501,15 +515,17 @@ public class MyAlgoLogic implements AlgoLogic {
         // UPDATE DATA ABOUT MY ALGO'S CHILD ORDERS - BUY SIDE
 
         // Update list of active child bid orders
-        activeChildBidOrdersToStringList.clear();  // for logging
+        getActiveChildBidOrdersListToString().clear(); // for logging
+        getActiveChildBidOrdersList().clear();
         activeChildBidOrdersList = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.BUY)
-            .peek(order -> activeChildBidOrdersToStringList
+            .filter(order -> order.getState()  == OrderState.PENDING)
+            .peek(order -> activeChildBidOrdersListToString
             .add("ACTIVE CHILD BID Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "]"))
             .collect(Collectors.toList());
 
         // if have active child BID orders, update the bids with the lowest and highest price
-        if (!activeChildBidOrdersList.isEmpty()) {
+        if (!getActiveChildBidOrdersList().isEmpty()) {
             haveActiveBidOrders = true;
             activeChildBidOrderWithLowestPrice = activeChildBidOrdersList.stream()
                 .min((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
@@ -525,11 +541,11 @@ public class MyAlgoLogic implements AlgoLogic {
             .filter(order -> !bidOrdersMarkedAsFilledOrPartFilled.contains(order))  // Only add if not processed
             .peek(order -> bidOrdersMarkedAsFilledOrPartFilled.add(order))  // Mark as processed
             .peek(order-> filledAndPartFilledChildBidOrdersListToString // for logging
-            .add("FILL/PARTFILL BID Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "] filledQuantity: " + order.getFilledQuantity())) // TODO DELETE LATER URING DEVELOPMENT FOR BACK TESTS
+            .add("FILLED/PARTFILLED BID Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "] filledQuantity: " + order.getFilledQuantity())) // TODO DELETE LATER URING DEVELOPMENT FOR BACK TESTS
             .collect(Collectors.toList());
 
         // if there are filled child BID Orders
-        if (!filledAndPartFilledChildBidOrdersList.isEmpty()) { 
+        if (!getFilledAndPartFilledChildBidOrdersList().isEmpty()) { 
             haveFilledBidOrders = true;
             setTotalFilledBidQuantity(); // update total filled bid quantity 
             setTotalExpenditure();
@@ -541,9 +557,11 @@ public class MyAlgoLogic implements AlgoLogic {
         // UPDATE DATA ABOUT MY ALGO'S CHILD ORDERS - SELL SIDE
 
         // Update list of active child ASK orders
-        activeChildAskOrdersListToString.clear();  // TODO delete later - only for logging now
+        getActiveChildAskOrdersListToString().clear(); // for logging 
+        getActiveChildAskOrdersList().clear();
         activeChildAskOrdersList = state.getActiveChildOrders().stream()
             .filter(order -> order.getSide() == Side.SELL)
+            .filter(order -> order.getState()  == OrderState.PENDING)
             .peek(order -> activeChildAskOrdersListToString
             .add("ACTIVE CHILD ASK Id:" + order.getOrderId() + "[" + order.getQuantity() + "@" + order.getPrice() + "]"))
             .collect(Collectors.toList());
@@ -564,8 +582,8 @@ public class MyAlgoLogic implements AlgoLogic {
             .filter(order -> order.getSide() == Side.SELL && order.getFilledQuantity() > 0)
             .filter(order -> !askOrdersMarkedAsFilledOrPartFilled.contains(order))  // Only add if not processed
             .peek(order -> askOrdersMarkedAsFilledOrPartFilled.add(order))  // Mark as processed
-            .peek(order-> filledAndPartFilledChildAskOrdersListToString // TODO DELETE LATER ONLY FOR OUTPUT DURING DEVELOPMENT FOR BACK TESTS
-            .add("FILL/PARTFILL ASK Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "] filledQuantity: " + order.getFilledQuantity())) // TODO DELETE LATER URING DEVELOPMENT FOR BACK TESTS
+            .peek(order-> filledAndPartFilledChildAskOrdersListToString // for loggging
+            .add("FILLED/PARTFILLED ASK Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "] filledQuantity: " + order.getFilledQuantity())) // forlogging
             .collect(Collectors.toList());
 
         // if there are filled ASK Orders
@@ -588,15 +606,16 @@ public class MyAlgoLogic implements AlgoLogic {
             haveShares = true;
         }
 
-     
         // logger.info("getChildBidOrderQuantity() is: " + getChildBidOrderQuantity());
-        logger.info("getActiveChildBidOrdersToStringList() is: " + getActiveChildBidOrdersToStringList());
+        logger.info("getActiveChildBidOrdersToStringList() is: " + getActiveChildBidOrdersListToString());
+        logger.info("getFilledAndPartFilledChildBidOrdersListToString() is: " + getFilledAndPartFilledChildBidOrdersListToString());
         logger.info("getTotalFilledBidQuantity() is: " + getTotalFilledBidQuantity());
         logger.info("getTotalExpenditure() is: " + getTotalExpenditure());
         logger.info("getAverageEntryPrice() is: " + getAverageEntryPrice());
         logger.info("getTargetChildAskOrderPrice() is: " + getTargetChildAskOrderPrice());
         logger.info("getStopLoss() is: " + getStopLoss());
         logger.info("getActiveChildAskOrdersListToString() is: " + getActiveChildAskOrdersListToString());
+        logger.info("getFilledAndPartFilledChildAskOrdersListToString() is: " + getFilledAndPartFilledChildAskOrdersListToString());
         logger.info("getTotalFilledAskQuantity() is: " + getTotalFilledAskQuantity());
         logger.info("getTotalRevenue() is: " + getTotalRevenue());
         logger.info("getNumOfSharesOwned() is: " + getNumOfSharesOwned());
