@@ -371,7 +371,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
 
     @Test
-    public void testMethodForSettingStopLossAfterTick2 () throws Exception {
+    public void testTrailingStopLossUpdatesAfterTick2 () throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
         send(Tick1());
@@ -380,7 +380,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         var state = container.getState();
         myAlgoLogic.evaluate(state);
 
-        assertEquals("Stop loss should be 97 after tick 2", 97, myAlgoLogic.getStopLoss());
+        assertEquals("Trailing stop loss should be 97 after tick 2", 97, myAlgoLogic.getTrailingStopLoss());
     }
 
     

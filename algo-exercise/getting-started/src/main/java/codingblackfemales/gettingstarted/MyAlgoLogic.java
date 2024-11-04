@@ -249,7 +249,7 @@ public class MyAlgoLogic implements AlgoLogic {
     private long totalExpenditure;
     private long averageEntryPrice;
     private long numOfSharesOwned;
-    private long stopLoss; 
+    private long trailingStopLoss; 
 
     public boolean getHaveFilledBidOrders(){
         return haveFilledBidOrders;
@@ -294,12 +294,12 @@ public class MyAlgoLogic implements AlgoLogic {
         return averageEntryPrice;
     }
 
-    private void setStopLoss() {
-        stopLoss = (long) Math.ceil(getAverageEntryPrice() * 0.98);
+    private void setTrailingStopLoss() {
+        trailingStopLoss = (long) Math.ceil(getAverageEntryPrice() * 0.98);
     }
 
-    public long getStopLoss() { 
-        return stopLoss;
+    public long getTrailingStopLoss() { 
+        return trailingStopLoss;
     }
 
     // SELL SIDE 
@@ -423,7 +423,7 @@ public class MyAlgoLogic implements AlgoLogic {
             .sum() / getTotalFilledQuantityOfAllBidAndAskOrders();
     }
     
-    public long getVWAP() { // top 10 // TODO - TEST THIS METHOD
+    public long getVWAP() { // TODO - TEST THIS METHOD
         return VWAP;
     }
 
@@ -550,7 +550,7 @@ public class MyAlgoLogic implements AlgoLogic {
             setTotalExpenditure();
             setAverageEntryPrice();
             setTargetChildAskOrderPrice();
-            setStopLoss();
+            setTrailingStopLoss();
         }
 
         // UPDATE DATA ABOUT MY ALGO'S CHILD ORDERS - SELL SIDE
@@ -605,14 +605,14 @@ public class MyAlgoLogic implements AlgoLogic {
             haveShares = true;
         }
 
-        // logger.info("getChildBidOrderQuantity() is: " + getChildBidOrderQuantity());
+        logger.info("getChildBidOrderQuantity() is: " + getChildBidOrderQuantity());
         logger.info("getActiveChildBidOrdersToStringList() is: " + getActiveChildBidOrdersListToString());
         logger.info("getFilledAndPartFilledChildBidOrdersListToString() is: " + getFilledAndPartFilledChildBidOrdersListToString());
         logger.info("getTotalFilledBidQuantity() is: " + getTotalFilledBidQuantity());
         logger.info("getTotalExpenditure() is: " + getTotalExpenditure());
         logger.info("getAverageEntryPrice() is: " + getAverageEntryPrice());
         logger.info("getTargetChildAskOrderPrice() is: " + getTargetChildAskOrderPrice());
-        logger.info("getStopLoss() is: " + getStopLoss());
+        logger.info("getTrailingStopLoss() is: " + getTrailingStopLoss());
         logger.info("getActiveChildAskOrdersListToString() is: " + getActiveChildAskOrdersListToString());
         logger.info("getFilledAndPartFilledChildAskOrdersListToString() is: " + getFilledAndPartFilledChildAskOrdersListToString());
         logger.info("getTotalFilledAskQuantity() is: " + getTotalFilledAskQuantity());
@@ -660,15 +660,14 @@ public class MyAlgoLogic implements AlgoLogic {
             if (getHaveShares()) {
 
                 // if VWAP hits stop loss price, sell everything
-                if (getVWAP() <= getStopLoss()) {
+                if (getVWAP() <= getTrailingStopLoss()) {
                     if (getNumOfSharesOwned() > 0) {
-                    logger.info("VWAP has hit stop loss price, selling all shares for best price possible");
+                    logger.info("VWAP has hit trailing stop loss price, selling all shares for best price possible");
                     return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getBestBidPriceInCurrentTick());
                     }   
                 }
 
                 // first ask order
-
                 if (getHaveActiveAskOrders() == false ) {
                     logger.info("Placing an ask order at target profit price");
                     return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getTargetChildAskOrderPrice());
@@ -719,19 +718,19 @@ public class MyAlgoLogic implements AlgoLogic {
                 bidPriceDifferentiator += 1;
                 if ((tightSpread && buyPressure) || (tightSpread && marketEquilibirum) ){
                     logger.info(" Placing 3 bid orders, the highest of which is an at-market bid order paying the spread to execute immediately.");
-                        return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick() + bidPriceDifferentiator));
+                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick() + bidPriceDifferentiator));
                 
                 } else if ((wideSpread && buyPressure) || (wideSpread && marketEquilibirum) || (regularSpread && buyPressure) ){
                     logger.info(" Placing 3 bid orders, the highest of which will be 1 tick above current best bid price, narrowing the spread.");
-                        return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + 1 + bidPriceDifferentiator));
+                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + 1 + bidPriceDifferentiator));
 
                 } else if ((wideSpread && sellPressure) || (regularSpread && marketEquilibirum) || (regularSpread && sellPressure) ){
                     logger.info(" Placing 3 bid orders, the highest of which will join the best bid price.");
-                        return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + bidPriceDifferentiator));
+                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + bidPriceDifferentiator));
 
                 } else if (tightSpread && sellPressure) {
                     logger.info("Placing 3 orders, the highest of which will be 1 tick size less than the best bid price.");
-                        return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 1 + bidPriceDifferentiator));
+                    return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 1 + bidPriceDifferentiator));
                 }
             }
             logger.info("No buy or sell conditions met, hold position until next market data tick");
