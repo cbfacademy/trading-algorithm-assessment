@@ -184,7 +184,6 @@ public class MyAlgoLogic implements AlgoLogic {
 
     private long childBidOrderQuantity;
 
-
     private void setChildBidOrderQuantity() {
         // initial fixed amount of 100, then after trades execute, set to 10% of all filled orders for a POV limit
         // should be 10% of all filled orders, not just child orders but only have child orders to work with
@@ -299,7 +298,7 @@ public class MyAlgoLogic implements AlgoLogic {
         stopLoss = (long) Math.ceil(getAverageEntryPrice() * 0.98);
     }
 
-    public long getStopLoss() { // top 10 // TODO - TEST THIS METHOD
+    public long getStopLoss() { 
         return stopLoss;
     }
 
@@ -380,7 +379,7 @@ public class MyAlgoLogic implements AlgoLogic {
         numOfSharesOwned = getTotalFilledBidQuantity() - getTotalFilledAskQuantity();
     }
 
-    public long getNumOfSharesOwned() {  // TODO - TEST THIS METHOD
+    public long getNumOfSharesOwned() {  
         return numOfSharesOwned;
     }
 
@@ -407,7 +406,7 @@ public class MyAlgoLogic implements AlgoLogic {
         totalProfitOrLoss = getTotalRevenue() - getTotalExpenditure();
     }
     
-    public long getTotalProfitOrLoss() { // top 10 // TODO - TEST THIS METHOD
+    public long getTotalProfitOrLoss() { 
         return totalProfitOrLoss;
     }
 

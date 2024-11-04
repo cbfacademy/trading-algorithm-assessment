@@ -318,6 +318,33 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     
 
     @Test
+    public void testBooleanGetHaveSharesEvaluatesToFalseAfterTick1 () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
+
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
+
+        assertEquals("getHaveShares should evaluate to false after tick 1", false, myAlgoLogic.getHaveShares());
+    }
+
+    @Test
+    public void testBooleanGetHaveSharesEvaluatesToTrueAfterTick2 () throws Exception {
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(Tick1());
+        send(Tick2());
+
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
+
+        assertEquals("getHaveShares should evaluate to true after tick 2", true, myAlgoLogic.getHaveShares());
+    }
+
+    
+
+    @Test
     public void testAverageEntryPriceIs0AfterTick1 () throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
 
