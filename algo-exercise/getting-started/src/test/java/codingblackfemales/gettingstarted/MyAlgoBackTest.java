@@ -37,24 +37,14 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     @Test
     public void testGetsBestBidOrderInCurrentTick() throws Exception {
         MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
-        System.out.println("BANGERANG TICK 1 STARTS NOW");
         send(Tick1());
-        System.out.println("BANGERANG TICK 2 STARTS NOW");
-        send(Tick2());
-        System.out.println("BANGERANG TICK 3 STARTS NOW");
-        send(Tick3());
-        System.out.println("BANGERANG TICK 4 STARTS NOW");
-        send(Tick4());
-
-
-
         
         //then: get the state
         var state = container.getState();
 
         myAlgoLogic.evaluate(state);
-        // assertEquals("Best bid price should be 98", 98, myAlgoLogic.getBestBidPriceInCurrentTick());
-        // assertEquals("Best bid quantity should be 200", 200, myAlgoLogic.getBestBidQuantityInCurrentTick()); // 100 from original orderbook + 100 placed by MyAlgoLogic
+        assertEquals("Best bid price should be 98", 98, myAlgoLogic.getBestBidPriceInCurrentTick());
+        assertEquals("Best bid quantity should be 200", 200, myAlgoLogic.getBestBidQuantityInCurrentTick()); // 100 from original orderbook + 100 placed by MyAlgoLogic
     }
     
     @Test
@@ -205,6 +195,8 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     @Test
     public void testChildBidOrderId4ExecutesAfterTick2() throws Exception {
 
+    MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
     send(Tick1());
     send(Tick2());
 
@@ -221,6 +213,38 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     assertEquals(100, filledQuantity);
 
 }
+
+@Test
+    public void testBooleanHaveFilledBidOrdersEvaluatesToFalseAfterTick1() throws Exception {
+
+    MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+    send(Tick1());
+
+    var state = container.getState(); 
+    myAlgoLogic.evaluate(state);
+
+    assertEquals("getHaveFilledBidOrders should evaluate to false after tick 1", false, myAlgoLogic.getHaveFilledBidOrders());
+
+}
+
+
+@Test
+    public void testBooleanHaveFilledBidOrdersEvaluatesToTrueAfterTick2() throws Exception {
+
+    MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+    send(Tick1());
+    send(Tick2());
+
+    var state = container.getState(); 
+    myAlgoLogic.evaluate(state);
+
+    assertEquals("getHaveFilledBidOrders should evaluate to true after tick 2", true, myAlgoLogic.getHaveFilledBidOrders());
+
+}
+
+
 
 
 @Test
