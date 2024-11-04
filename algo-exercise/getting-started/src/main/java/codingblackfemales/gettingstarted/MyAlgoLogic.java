@@ -14,6 +14,7 @@ import messages.order.Side;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -153,6 +154,52 @@ public class MyAlgoLogic implements AlgoLogic {
     private boolean tightSpread = false;
     private boolean regularSpread = false;
     private boolean wideSpread = false;
+
+
+
+    // Historical data from most recent ticks (up to the 10 most recent ticks)
+    private List<Long> historyOfBestBidPrice = new LinkedList<>();
+    private List<Long> historyOfBestAskPrice = new LinkedList<>();
+    private List<Long> historyOfTheSpread = new LinkedList<>();
+    private List<Double> historyOfMidPrice = new LinkedList<>();
+    private List<Double> historyOfRelativeSpread = new LinkedList<>();
+    private List<Long> historyOfTotalQuantityOfBidOrders = new LinkedList<>();
+    private List<Long> historyOfTotalQuantityOfAskOrders = new LinkedList<>();
+    private List<Long> historyOfVWAP = new LinkedList<>();
+
+    // getters to access lists of historical data
+    public List<Long> getHistoryOfBestBidPrice() { //   TODO  - test this
+        return historyOfBestBidPrice;
+    }
+
+    public List<Long> getHistoryOfBestAskPrice() { //   TODO  - test this
+        return historyOfBestAskPrice;
+    }
+
+    public List<Long> getHistoryOfTheSpread() { //   TODO  - test this
+        return historyOfTheSpread;
+    }
+
+    public List<Double> getHistoryOfMidPrice() { //   TODO  - test this
+        return historyOfMidPrice;
+    }
+
+    public List<Double> getHistoryOfRelativeSpread() { //   TODO  - test this
+        return historyOfRelativeSpread;
+    }
+
+    public List<Long> getHistoryOfTotalQuantityOfBidOrders() { //   TODO  - test this
+        return historyOfTotalQuantityOfBidOrders;
+    }
+
+    public List<Long> getHistoryOfTotalQuantityOfAskOrders() { //   TODO  - test this
+        return historyOfTotalQuantityOfAskOrders;
+    }
+
+    public List<Long> getHistoryOfVWAP() { //   TODO  - test this
+        return historyOfVWAP;
+    }
+
  
     // variable to cap items of data to analyse
     int MAX_ITEMS_OF_DATA = 10;
@@ -311,6 +358,9 @@ public class MyAlgoLogic implements AlgoLogic {
     private ChildOrder activeChildAskOrderWithHighestPrice = null;
     private ChildOrder activeChildAskOrderWithLowestPrice = null;
 
+    private long targetChildAskOrderPrice;
+
+
     public List<ChildOrder> getActiveChildAskOrdersList() {
         return activeChildAskOrdersList;
     }
@@ -334,7 +384,6 @@ public class MyAlgoLogic implements AlgoLogic {
     }
 
 
-    private long targetChildAskOrderPrice;
 
     private void setTargetChildAskOrderPrice() {
         targetChildAskOrderPrice = (long) Math.ceil(getAverageEntryPrice() * 1.03);
@@ -352,6 +401,9 @@ public class MyAlgoLogic implements AlgoLogic {
     private long totalFilledAskQuantity;
     private boolean haveFilledAskOrders = false;
     private long totalRevenue;
+    private long totalProfitOrLoss;
+    private long VWAP;
+    private boolean haveShares = false;
 
     public boolean getHaveFilledAskOrders(){
         return haveFilledAskOrders;
@@ -381,10 +433,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
     public long getNumOfSharesOwned() {  
         return numOfSharesOwned;
-    }
-
-    // boolean for if we own shares
-    private boolean haveShares = false;
+    }  
 
     public boolean getHaveShares(){
         return haveShares;
@@ -399,8 +448,6 @@ public class MyAlgoLogic implements AlgoLogic {
     public long getTotalRevenue() { //TODO test this method
         return totalRevenue;
     }
-    
-    private long totalProfitOrLoss;
 
     private void setTotalProfitOrLoss() {
         totalProfitOrLoss = getTotalRevenue() - getTotalExpenditure();
@@ -414,7 +461,6 @@ public class MyAlgoLogic implements AlgoLogic {
         return getTotalFilledBidQuantity() + getTotalFilledAskQuantity();
     }
 
-    private long VWAP;
 
     private void setVWAP() {        
         VWAP = getAllChildOrdersList().stream()
