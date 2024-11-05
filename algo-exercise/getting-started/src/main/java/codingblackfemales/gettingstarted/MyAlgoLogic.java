@@ -5,6 +5,7 @@ import codingblackfemales.action.CancelChildOrder;
 import codingblackfemales.action.CreateChildOrder;
 import codingblackfemales.action.NoAction;
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.orderbook.order.Order;
 import codingblackfemales.sotw.ChildOrder;
 import codingblackfemales.sotw.OrderState;
 import codingblackfemales.sotw.SimpleAlgoState;
@@ -13,6 +14,7 @@ import codingblackfemales.util.Util;
 import messages.order.Side;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -484,9 +486,8 @@ public class MyAlgoLogic implements AlgoLogic {
     }
 
     public long getTotalFilledQuantityOfAllChildBidAndAskOrders() {
-           return totalFilledQuantityOfAllChildBidAndAskOrders;
-        
-        }
+        return totalFilledQuantityOfAllChildBidAndAskOrders; 
+    }
 
 
     private void setVWAP() {        
@@ -582,8 +583,7 @@ public class MyAlgoLogic implements AlgoLogic {
         getActiveChildBidOrdersListToString().clear(); // for logging
         getActiveChildBidOrdersList().clear();
         activeChildBidOrdersList = state.getActiveChildOrders().stream()
-            .filter(order -> order.getSide() == Side.BUY)
-            .filter(order -> order.getState()  == OrderState.PENDING)
+            .filter(order -> order.getSide() == Side.BUY && order.getState() == OrderState.PENDING)
             .peek(order -> activeChildBidOrdersListToString
             .add("ACTIVE CHILD BID Id:" + order.getOrderId() + " [" + order.getQuantity() + "@" + order.getPrice() + "]"))
             .collect(Collectors.toList());
@@ -592,10 +592,10 @@ public class MyAlgoLogic implements AlgoLogic {
         if (!getActiveChildBidOrdersList().isEmpty()) {
             haveActiveBidOrders = true;
             activeChildBidOrderWithLowestPrice = activeChildBidOrdersList.stream()
-                .min((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
+                .min(Comparator.comparingLong(ChildOrder::getPrice))
                 .orElse(null);  // handle the case when min() returns an empty Optional
             activeChildBidOrderWithHighestPrice = activeChildBidOrdersList.stream()
-                .max((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
+                .max(Comparator.comparingLong(ChildOrder::getPrice))
                 .orElse(null);  // handle the case when min() returns an empty Optional
             }
 
@@ -611,7 +611,7 @@ public class MyAlgoLogic implements AlgoLogic {
         // if there are filled child BID Orders
         if (!getFilledAndPartFilledChildBidOrdersList().isEmpty()) { 
             haveFilledBidOrders = true;
-            setTotalFilledBidQuantity(); // update total filled bid quantity 
+            setTotalFilledBidQuantity();
             setTotalExpenditure();
             setAverageEntryPrice();
             setTargetChildAskOrderPrice();
@@ -624,8 +624,7 @@ public class MyAlgoLogic implements AlgoLogic {
         getActiveChildAskOrdersListToString().clear(); // for logging 
         getActiveChildAskOrdersList().clear();
         activeChildAskOrdersList = state.getActiveChildOrders().stream()
-            .filter(order -> order.getSide() == Side.SELL)
-            .filter(order -> order.getState()  == OrderState.PENDING)
+            .filter(order -> order.getSide() == Side.SELL && order.getState() == OrderState.PENDING)
             .peek(order -> activeChildAskOrdersListToString
             .add("ACTIVE CHILD ASK Id:" + order.getOrderId() + "[" + order.getQuantity() + "@" + order.getPrice() + "]"))
             .collect(Collectors.toList());
@@ -634,10 +633,10 @@ public class MyAlgoLogic implements AlgoLogic {
         if (!activeChildAskOrdersList.isEmpty()) {
             haveActiveAskOrders = true;
             activeChildAskOrderWithHighestPrice = activeChildAskOrdersList.stream()
-                .max((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
+                .max(Comparator.comparingLong(ChildOrder::getPrice))
                 .orElse(null);  // handle the case when max() returns an empty Optional        
             activeChildAskOrderWithLowestPrice = activeChildAskOrdersList.stream()
-                .min((order1, order2) -> Long.compare(order1.getPrice(), order2.getPrice()))
+                .min(Comparator.comparingLong(ChildOrder::getPrice))
                 .orElse(null);  // handle the case when max() returns an empty Optional
             }
 
