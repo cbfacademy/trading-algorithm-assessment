@@ -179,52 +179,6 @@ public class MyAlgoLogic implements AlgoLogic {
         return spreadType;
     }
 
-
-
-    // Historical data from most recent ticks (up to the 10 most recent ticks)
-    private List<Long> historyOfBestBidPrice = new LinkedList<>();
-    private List<Long> historyOfBestAskPrice = new LinkedList<>();
-    private List<Long> historyOfTheSpread = new LinkedList<>();
-    private List<Double> historyOfMidPrice = new LinkedList<>();
-    private List<Double> historyOfRelativeSpread = new LinkedList<>();
-    private List<Long> historyOfTotalQuantityOfBidOrders = new LinkedList<>();
-    private List<Long> historyOfTotalQuantityOfAskOrders = new LinkedList<>();
-    private List<Long> historyOfVWAP = new LinkedList<>();
-
-    // getters to access lists of historical data
-    public List<Long> getHistoryOfBestBidPrice() { //   TODO  - test this
-        return historyOfBestBidPrice;
-    }
-
-    public List<Long> getHistoryOfBestAskPrice() { //   TODO  - test this
-        return historyOfBestAskPrice;
-    }
-
-    public List<Long> getHistoryOfTheSpread() { //   TODO  - test this
-        return historyOfTheSpread;
-    }
-
-    public List<Double> getHistoryOfMidPrice() { //   TODO  - test this
-        return historyOfMidPrice;
-    }
-
-    public List<Double> getHistoryOfRelativeSpread() { //   TODO  - test this
-        return historyOfRelativeSpread;
-    }
-
-    public List<Long> getHistoryOfTotalQuantityOfBidOrders() { //   TODO  - test this
-        return historyOfTotalQuantityOfBidOrders;
-    }
-
-    public List<Long> getHistoryOfTotalQuantityOfAskOrders() { //   TODO  - test this
-        return historyOfTotalQuantityOfAskOrders;
-    }
-
-    public List<Long> getHistoryOfVWAP() { //   TODO  - test this
-        return historyOfVWAP;
-    }
-
- 
     // variable to cap items of data to analyse
     int MAX_ITEMS_OF_DATA = 10;
 
