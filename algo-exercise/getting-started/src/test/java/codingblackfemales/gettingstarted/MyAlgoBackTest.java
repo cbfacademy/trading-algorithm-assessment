@@ -666,5 +666,42 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("spreadType should evaluate to SpreadType.REGULAR after Tick1", SpreadType.REGULAR, myAlgoLogic.getSpreadType());
     }
 
+    @Test
+    public void testFirstBidOrderInDownwardTrend() throws Exception {
+
+        send(Tick4());
+        send(Tick3());
+        send(Tick2());
+        send(Tick1());
+
+        var state = container.getState();
+
+        List <ChildOrder> childOrderId2 = state.getChildOrders().stream()
+            .filter(order -> order.getOrderId() == 2)
+            .collect(Collectors.toList());
+        
+        assertEquals("Child order ID 2 should be a buy order", Side.BUY, childOrderId2.get(0).getSide());
+        assertEquals("Child order ID 2 should be a buy order priced at 100", 100, childOrderId2.get(0).getPrice());
+        // assertEquals("Child order ID 2 should be filled after tick 1", OrderState.FILLED, childOrderId2.get(0).getState());
+    }
+
+    @Test
+    public void testSecondBidOrderInDownwardTrend() throws Exception {
+        send(Tick4());
+        send(Tick3());
+        send(Tick2());
+        send(Tick1());
+
+        var state = container.getState();
+
+        List <ChildOrder> childOrderId3 = state.getChildOrders().stream()
+            .filter(order -> order.getOrderId() == 3)
+            .collect(Collectors.toList());
+        
+        assertEquals("Child order ID 3 should be a buy order", Side.BUY, childOrderId3.get(0).getSide());
+        assertEquals("Child order ID 3 should be a buy order priced at 101", 101, childOrderId3.get(0).getPrice());
+        // assertEquals("Child order ID 3 should be filled after tick 1", OrderState.FILLED, childOrderId3.get(0).getState());
+    }
+
 }
     
