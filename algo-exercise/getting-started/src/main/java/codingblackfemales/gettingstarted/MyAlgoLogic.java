@@ -5,7 +5,6 @@ import codingblackfemales.action.CancelChildOrder;
 import codingblackfemales.action.CreateChildOrder;
 import codingblackfemales.action.NoAction;
 import codingblackfemales.algo.AlgoLogic;
-import codingblackfemales.orderbook.order.Order;
 import codingblackfemales.sotw.ChildOrder;
 import codingblackfemales.sotw.OrderState;
 import codingblackfemales.sotw.SimpleAlgoState;
@@ -195,6 +194,14 @@ public class MyAlgoLogic implements AlgoLogic {
         }
     }
 
+      // method to populate lists of doubles capped at 10 items
+      private void addToAListOfDoubles(List<Double> list, double num) {
+        list.add(num);
+        if (list.size() > MAX_ITEMS_OF_DATA) {
+            list.remove(0); // remove oldest piece of data
+        }
+    }
+
     // method to calculate sum of all in a list of longs
     private long sumOfAllInAListOfLongs(List<Long> list) { 
         return list.stream().reduce(Long::sum).orElse(0L);
@@ -234,7 +241,7 @@ public class MyAlgoLogic implements AlgoLogic {
     private List<Double> historyOfRelativeSpread = new LinkedList<>();
     private List<Long> historyOfTotalQuantityOfBidOrders = new LinkedList<>();
     private List<Long> historyOfTotalQuantityOfAskOrders = new LinkedList<>();
-    private List<Long> historyOfVWAP = new LinkedList<>();
+    private List<Double> historyOfVWAP = new LinkedList<>();
 
 
     // getters to access lists of historical data
@@ -264,6 +271,11 @@ public class MyAlgoLogic implements AlgoLogic {
 
     public List<Long> getHistoryOfTotalQuantityOfAskOrders() {
         return historyOfTotalQuantityOfAskOrders;
+    }
+
+
+    public List<Double> getHistoryOfVWAP() {
+        return historyOfVWAP;
     }
 
     // DATA ABOUT MY ALGO'S CHILD ORDERS
@@ -421,7 +433,7 @@ public class MyAlgoLogic implements AlgoLogic {
     private boolean haveFilledAskOrders = false;
     private long totalRevenue;
     private long totalProfitOrLoss;
-    private long VWAP;
+    private double VWAP;
     private boolean haveShares = false;
 
     public boolean getHaveFilledAskOrders(){
@@ -497,7 +509,7 @@ public class MyAlgoLogic implements AlgoLogic {
             .sum() / getTotalFilledQuantityOfAllChildBidAndAskOrders();
     }
     
-    public long getVWAP() {
+    public double getVWAP() {
         return VWAP;
     }
 
@@ -517,8 +529,8 @@ public class MyAlgoLogic implements AlgoLogic {
         bestBidQuantityInCurrentTick = getBestBidOrderInCurrentTick().getQuantity();
 
 
-        // Loop to populate lists of data about the top bid orders in the current tick
-        int maxBidOrders = Math.min(state.getBidLevels(), MAX_ITEMS_OF_DATA); // up to a max of 10 bid orders
+        // Loop to populate lists of data about the top bid order levels in the current tick
+        int maxBidOrders = Math.min(state.getBidLevels(), MAX_ITEMS_OF_DATA); // up to a max of 10 bid order price levels
         getTopBidOrdersInCurrentTick().clear();
         getPricesOfTopBidOrdersInCurrentTick().clear();
         getQuantitiesOfTopBidOrdersInCurrentTick().clear();
@@ -536,8 +548,8 @@ public class MyAlgoLogic implements AlgoLogic {
         bestAskPriceInCurrentTick = getBestAskOrderInCurrentTick().getPrice();
         bestAskQuantityInCurrentTick = getBestAskOrderInCurrentTick().getQuantity();
 
-        // Loop to populate lists of data about the top ask orders in the current tick
-        int maxAskOrders = Math.min(state.getAskLevels(), 10); // up to a max of 10 ask orders
+        // Loop to populate lists of data about the top ask order levels in the current tick
+        int maxAskOrders = Math.min(state.getAskLevels(), 10); // up to a max of 10 ask order price levels
         getTopAskOrdersInCurrentTick().clear();
         getPricesOfTopAskOrdersInCurrentTick().clear();
         getQuantitiesOfTopAskOrdersInCurrentTick().clear();
@@ -555,8 +567,21 @@ public class MyAlgoLogic implements AlgoLogic {
         midPriceInCurrentTick = (getBestAskPriceInCurrentTick() + getBestBidPriceInCurrentTick()) / 2;
         relativeSpreadInCurrentTick = Math.round((getTheSpreadInCurrentTick() / getMidPriceInCurrentTick() * 100) * 100 / 100); // rounded to 2dp
     
-        
         setSpreadType();
+
+        // add data to historical data of most recent ticks
+        addToAListOfLongs(getHistoryOfBestAskPrice(), getBestAskPriceInCurrentTick());
+        addToAListOfLongs(getHistoryOfTotalQuantityOfAskOrders(), getTotalQuantityOfAskOrdersInCurrentTick());
+    
+        addToAListOfLongs(getHistoryOfBestBidPrice(), getBestBidPriceInCurrentTick());
+        addToAListOfLongs(getHistoryOfTotalQuantityOfBidOrders(), getTotalQuantityOfBidOrdersInCurrentTick());
+    
+        addToAListOfLongs(getHistoryOfTheSpread(), getTheSpreadInCurrentTick());
+        addToAListOfDoubles(getHistoryOfRelativeSpread(), getRelativeSpreadInCurrentTick());
+        addToAListOfDoubles(getHistoryOfMidPrice(), getMidPriceInCurrentTick());
+
+        addToAListOfDoubles(getHistoryOfVWAP(), getVWAP());
+
 
 
         // ANALYSING SUPPLY AND DEMAND - TODO TEST THIS
@@ -669,6 +694,18 @@ public class MyAlgoLogic implements AlgoLogic {
         if (getNumOfSharesOwned() > 0) {
             haveShares = true;
         }
+
+        logger.info("getHistoryOfBestAskPrice() is: " + getHistoryOfBestAskPrice());
+        logger.info("getHistoryOfTotalQuantityOfAskOrders() is: " + getHistoryOfTotalQuantityOfAskOrders());
+
+        logger.info("getHistoryOfBestBidPrice() is: " + getHistoryOfBestBidPrice());
+        logger.info("getHistoryOfTotalQuantityOfBidOrders() is: " + getHistoryOfTotalQuantityOfBidOrders());
+
+        logger.info("getHistoryOfTheSpread() is: " + getHistoryOfTheSpread());
+        logger.info("getHistoryOfRelativeSpread() is: " + getHistoryOfRelativeSpread());
+        logger.info("getHistoryOfMidPrice() is: " + getHistoryOfMidPrice());
+        logger.info("getHistoryOfVWAP() is: " + getHistoryOfVWAP());
+
 
         logger.info("getChildBidOrderQuantity() is: " + getChildBidOrderQuantity());
         logger.info("getActiveChildBidOrdersToStringList() is: " + getActiveChildBidOrdersListToString());
