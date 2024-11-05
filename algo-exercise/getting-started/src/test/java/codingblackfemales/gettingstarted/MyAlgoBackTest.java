@@ -234,10 +234,10 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //when
         var state = container.getState(); // Ensuring state is retrieved
         MyAlgoLogic algoLogic = new MyAlgoLogic();//instance of algo logic to call the test on
-        long calculatedSellInlineVolume = algoLogic.sellVolumeInline(state,20.0); // Capturing result of the calculation
+        long calculatedSellInlineVolume = algoLogic.sellVolumeInline(state,25.0); // Capturing result of the calculation
 
         // then
-        assertEquals("Inline Sell Volume calculation matches expected",178, calculatedSellInlineVolume);
+        assertEquals("Inline Sell Volume calculation matches expected",33, calculatedSellInlineVolume);
 
     }
     @Test
