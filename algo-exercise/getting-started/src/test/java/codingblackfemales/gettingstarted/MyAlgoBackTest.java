@@ -1,6 +1,7 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.gettingstarted.MyAlgoLogic.SpreadType;
 import codingblackfemales.sotw.ChildOrder;
 import codingblackfemales.sotw.OrderState;
 
@@ -621,5 +622,49 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         assertEquals("Child order ID 6 should be a sell order priced at 102", 102, childOrderId6.get(0).getPrice());
         // assertEquals("Child order ID 6 should be cancelled after tick X", OrderState.CANCELLED, childOrderId6.get(0).getState());
     }
+
+    @Test
+    public void testEnumAnalysisOfSpreadTypeWhenSpreadIsTight() throws Exception {
+    
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(TickTightSpread());
+
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
+
+        assertEquals("spreadType should evaluate to SpreadType.TIGHT after TickTightSpread", SpreadType.TIGHT, myAlgoLogic.getSpreadType());
+    }
+
+
+    @Test
+    public void testEnumAnalysisOfSpreadTypeWhenSpreadIsWide() throws Exception {
+    
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(TickTightSpread());
+        send(TickWideSpread());
+
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
+
+        assertEquals("spreadType should evaluate to SpreadType.WIDE after TickWideSpread", SpreadType.WIDE, myAlgoLogic.getSpreadType());
+    }
+
+    @Test
+    public void testEnumAnalysisOfSpreadTypeWhenSpreadIsRegular() throws Exception {
+    
+        MyAlgoLogic myAlgoLogic = new MyAlgoLogic();
+
+        send(TickTightSpread());
+        send(TickWideSpread());
+        send(Tick1());
+
+        var state = container.getState();
+        myAlgoLogic.evaluate(state);
+
+        assertEquals("spreadType should evaluate to SpreadType.REGULAR after Tick1", SpreadType.REGULAR, myAlgoLogic.getSpreadType());
+    }
+
 }
     
