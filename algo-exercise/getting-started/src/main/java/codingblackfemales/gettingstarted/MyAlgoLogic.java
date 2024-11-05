@@ -150,10 +150,34 @@ public class MyAlgoLogic implements AlgoLogic {
         return relativeSpreadInCurrentTick;
     }
 
-    // booleans for analysing the spread
-    private boolean tightSpread = false;
-    private boolean regularSpread = false;
-    private boolean wideSpread = false;
+    // ANALYSING THE SPREAD
+
+    // enums for analysing the spread
+    public enum SpreadType {
+        TIGHT,
+        REGULAR,
+        WIDE
+    }
+
+    // variable to store the enum value 
+    private SpreadType spreadType;
+
+     // Method to analyse and set SpreadType
+    private void setSpreadType() {
+        double relativeSpread = getRelativeSpreadInCurrentTick();
+
+        if (relativeSpread < 2) {
+            spreadType = SpreadType.TIGHT;
+        } else if (relativeSpread <= 3) {
+            spreadType = SpreadType.REGULAR;
+        } else {
+            spreadType = SpreadType.WIDE;
+        }
+    }
+
+    public SpreadType getSpreadType() {
+        return spreadType;
+    }
 
 
 
@@ -528,14 +552,7 @@ public class MyAlgoLogic implements AlgoLogic {
         relativeSpreadInCurrentTick = Math.round((getTheSpreadInCurrentTick() / getMidPriceInCurrentTick() * 100) * 100 / 100); // rounded to 2dp
     
         
-        // ANALYSING THE SPREAD
-        if (getRelativeSpreadInCurrentTick() < 2) {
-            tightSpread = true;
-        } else if (getRelativeSpreadInCurrentTick() >= 2 && getRelativeSpreadInCurrentTick() <= 3) {
-                regularSpread = true;
-        } else {
-            wideSpread = true;
-        };
+        setSpreadType();
 
 
         // ANALYSING SUPPLY AND DEMAND - TODO TEST THIS
@@ -678,6 +695,8 @@ public class MyAlgoLogic implements AlgoLogic {
             logger.info("Currently own " + getNumOfSharesOwned() + " shares.");
             logger.info(supplyAndDemandStatus);
             logger.info("The relative spread is: " + getRelativeSpreadInCurrentTick());
+            logger.info("SpreadType is: " + spreadType);
+
 
 
             // CANCELLING ORDERS
@@ -729,22 +748,23 @@ public class MyAlgoLogic implements AlgoLogic {
                 if ((getActiveChildAskOrdersList().size() >= 2) && (getActiveChildAskOrdersList().size() < 3) 
                 && (getTargetChildAskOrderPrice() >= getBestAskPriceInCurrentTick())) {
 
-                    if ((tightSpread && sellPressure) || (tightSpread && marketEquilibirum)) {
+
+                    if (((getSpreadType() == SpreadType.TIGHT) && sellPressure) || ((getSpreadType() == SpreadType.TIGHT) && marketEquilibirum)) {
                         logger.info("Placing an at-market ask order to pay the spread and execute immediately");
                             return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getBestBidPriceInCurrentTick());
                     }
 
-                    if ((wideSpread && sellPressure) || (wideSpread && marketEquilibirum) || (regularSpread && sellPressure)) {
+                    if (((getSpreadType() == SpreadType.WIDE) && sellPressure) || ((getSpreadType() == SpreadType.WIDE) && marketEquilibirum) || ((getSpreadType() == SpreadType.REGULAR) && sellPressure)) {
                         logger.info("Placing an ask order 1 tick size below current best ask price, narrowing the spread.");
                             return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getBestAskPriceInCurrentTick() - 1));
                     }
 
-                    if ((regularSpread && marketEquilibirum) || (wideSpread && buyPressure)) {
+                    if (((getSpreadType() == SpreadType.REGULAR) && marketEquilibirum) || ((getSpreadType() == SpreadType.WIDE) && buyPressure)) {
                         logger.info("Placing an ask order to join current best ask price");
                         return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), getBestAskPriceInCurrentTick());
                     }
 
-                    if (tightSpread && buyPressure) {
+                    if ((getSpreadType() == SpreadType.TIGHT) && buyPressure) {
                         logger.info("Placing an ask order 1 tick size above current best ask price");
                             return new CreateChildOrder(Side.SELL, getNumOfSharesOwned(), (getBestAskPriceInCurrentTick() + 1));
                     }
@@ -762,19 +782,19 @@ public class MyAlgoLogic implements AlgoLogic {
                 logger.info("Currently have " + getActiveChildBidOrdersList().size() + " active bid orders");
 
                 bidPriceDifferentiator += 1;
-                if ((tightSpread && buyPressure) || (tightSpread && marketEquilibirum) ){
+                if (((getSpreadType() == SpreadType.TIGHT) && buyPressure) || ((getSpreadType() == SpreadType.TIGHT) && marketEquilibirum) ){
                     logger.info(" Placing 3 bid orders, the highest of which is an at-market bid order paying the spread to execute immediately.");
                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick() + bidPriceDifferentiator));
                 
-                } else if ((wideSpread && buyPressure) || (wideSpread && marketEquilibirum) || (regularSpread && buyPressure) ){
+                } else if (((getSpreadType() == SpreadType.WIDE) && buyPressure) || ((getSpreadType() == SpreadType.WIDE) && marketEquilibirum) || ((getSpreadType() == SpreadType.REGULAR) && buyPressure) ){
                     logger.info(" Placing 3 bid orders, the highest of which will be 1 tick above current best bid price, narrowing the spread.");
                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + 1 + bidPriceDifferentiator));
 
-                } else if ((wideSpread && sellPressure) || (regularSpread && marketEquilibirum) || (regularSpread && sellPressure) ){
+                } else if (((getSpreadType() == SpreadType.WIDE) && sellPressure) || ((getSpreadType() == SpreadType.REGULAR) && marketEquilibirum) || ((getSpreadType() == SpreadType.REGULAR) && sellPressure) ){
                     logger.info(" Placing 3 bid orders, the highest of which will join the best bid price.");
                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() + bidPriceDifferentiator));
 
-                } else if (tightSpread && sellPressure) {
+                } else if ((getSpreadType() == SpreadType.TIGHT) && sellPressure) {
                     logger.info("Placing 3 orders, the highest of which will be 1 tick size less than the best bid price.");
                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() - 1 + bidPriceDifferentiator));
                 }
