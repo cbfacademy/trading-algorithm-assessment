@@ -14,7 +14,6 @@ import messages.order.Side;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -351,7 +350,6 @@ public class MyAlgoLogic implements AlgoLogic {
         return haveActiveAskOrders;
     }
 
-    private String activeChildAskOrderWithHighestPriceToString = ""; // for logging
 
     public ChildOrder getActiveChildAskOrderWithHighestPrice() {
         return activeChildAskOrderWithHighestPrice;
@@ -387,11 +385,11 @@ public class MyAlgoLogic implements AlgoLogic {
         return haveFilledAskOrders;
     }
 
-    public List<ChildOrder> getFilledAndPartFilledChildAskOrdersList() { // TODO - unit test
+    public List<ChildOrder> getFilledAndPartFilledChildAskOrdersList() { 
         return filledAndPartFilledChildAskOrdersList;
     }
 
-    public List<String> getFilledAndPartFilledChildAskOrdersListToString() { // TODO - unit test
+    public List<String> getFilledAndPartFilledChildAskOrdersListToString() { 
         return filledAndPartFilledChildAskOrdersListToString;
     }
 
@@ -401,7 +399,7 @@ public class MyAlgoLogic implements AlgoLogic {
         .sum();
     }
 
-    public long getTotalFilledAskQuantity() { // TODO - TEST THIS METHOD
+    public long getTotalFilledAskQuantity() { 
         return totalFilledAskQuantity;
     }
 
@@ -423,7 +421,7 @@ public class MyAlgoLogic implements AlgoLogic {
             .sum();
     }
     
-    public long getTotalRevenue() { //TODO test this method
+    public long getTotalRevenue() { 
         return totalRevenue;
     }
 
@@ -435,7 +433,7 @@ public class MyAlgoLogic implements AlgoLogic {
         return totalProfitOrLoss;
     }
 
-    public long getTotalFilledQuantityOfAllBidAndAskOrders() {  // TODO - TEST THIS METHOD  
+    public long getTotalFilledQuantityOfAllBidAndAskOrders() {    
         return getTotalFilledBidQuantity() + getTotalFilledAskQuantity();
     }
 
@@ -447,7 +445,7 @@ public class MyAlgoLogic implements AlgoLogic {
             .sum() / getTotalFilledQuantityOfAllBidAndAskOrders();
     }
     
-    public long getVWAP() { // TODO - TEST THIS METHOD
+    public long getVWAP() {
         return VWAP;
     }
 
@@ -519,7 +517,6 @@ public class MyAlgoLogic implements AlgoLogic {
         } else {
             marketEquilibirum = true;
             supplyAndDemandStatus = "Buyer and seller numbers are equal or relatively close.";
-
         };
     
 
@@ -637,21 +634,17 @@ public class MyAlgoLogic implements AlgoLogic {
         logger.info("getNumOfSharesOwned() is: " + getNumOfSharesOwned());
         logger.info("getTotalProfitOrLoss() is: " + getTotalProfitOrLoss());
         logger.info("getVWAP() is: " + getVWAP());
+        logger.info("Currently own " + getNumOfSharesOwned() + " shares.");
+        logger.info(supplyAndDemandStatus);
+        logger.info("The relative spread is: " + getRelativeSpreadInCurrentTick());
+        logger.info("SpreadType is: " + spreadType);
 
 
         // CREATE / CANCEL / BID / SELL DECISION LOGIC
 
-
         // EXIT CONDITION - UP TO A MAX OF 6 CHILD ORDERS
 
         if (getAllChildOrdersList().size() < 6) {
-
-            logger.info("Currently own " + getNumOfSharesOwned() + " shares.");
-            logger.info(supplyAndDemandStatus);
-            logger.info("The relative spread is: " + getRelativeSpreadInCurrentTick());
-            logger.info("SpreadType is: " + spreadType);
-
-
 
             // CANCELLING ORDERS
 
@@ -762,34 +755,6 @@ public class MyAlgoLogic implements AlgoLogic {
         
     }
 }
-
-    
-        
-
-
-
-//         
-        
-//         // place 3 bid orders
-//         if (getActiveChildBidOrdersList().size() < 3) {
-//                 int priceDifferentiator = -3;
-
-            
-//                 // if spread is wide, place a passive child order bid priced 1 tick above best bid to narrow the spread and (hopefully!) prompt trading
-//                 if (wideSpread) {
-//                     logger.info("Currently have " + getActiveChildBidOrdersList().size() + " active bid orders and spread is wide, placing a bid order above current best bid");
-//                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick() +));
-//                 }
-//                 // if spread is regular, place a passive child bid order joining best bid price
-//                 if (regularSpread) {
-//                     logger.info("Currently have 1 active bid order and spread is regular, placing a bid order joining current best bid");
-//                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestBidPriceInCurrentTick()));
-//                 }
-//                 // if spread is tight, place an at-market child bid order paying the spread to buy immediately
-//                 if (tightSpread) {
-//                     logger.info("Currently have 1 active bid order and spread is tight, paying the spread to place an at-market bid order to execute immediately");
-//                     return new CreateChildOrder(Side.BUY, getChildBidOrderQuantity(), (getBestAskPriceInCurrentTick()));
-//                 }  
 
 
 
