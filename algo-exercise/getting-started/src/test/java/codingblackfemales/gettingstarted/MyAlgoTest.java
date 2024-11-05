@@ -48,7 +48,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals(8,state.getChildOrders().size()); //8 is expected but an incorrect value of 21 is returned
+        assertEquals(13,state.getChildOrders().size()); //11 is expected but an incorrect value of 21 is returned
     }
 
     @Test
@@ -58,7 +58,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals(6,state.getActiveChildOrders().size());//6 is expected but an incorrect value of 21 is returned
+        assertEquals(11,state.getActiveChildOrders().size());//11 is expected but an incorrect value of 21 is returned
     }
     @Test
     public void VWAPCalculation() throws Exception {
@@ -83,7 +83,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
         double calculatedVolumeImbalanceIndication = algoLogic.calculateVolumeImbalance(state); // Capturing result of the calculation
 
         // then
-        assertEquals("Volume Imbalance calculation matches expected",0.17233294255568582,calculatedVolumeImbalanceIndication);//0.17233294255568582 is expected but an incorrect value of 0.9607843137254902 is returned
+        assertEquals("Volume Imbalance calculation matches expected",0.25,calculatedVolumeImbalanceIndication);//0.25 is expected but an incorrect value of 0.9607843137254902 is returned
 
     }
     @Test
@@ -92,10 +92,10 @@ public class MyAlgoTest extends AbstractAlgoTest {
         //when
         var state = container.getState(); // Ensuring state is retrieved
         MyAlgoLogic algoLogic = new MyAlgoLogic();//instance of algo logic to call the test on
-        long calculatedSellInlineVolume = algoLogic.sellVolumeInline(state,20.0); // Capturing result of the calculation
+        long calculatedSellInlineVolume = algoLogic.sellVolumeInline(state,25.0); // Capturing result of the calculation
 
         // then
-        assertEquals("Inline Sell Volume calculation matches expected",178, calculatedSellInlineVolume);//178 is expected but an incorrect value of 0 is returned
+        assertEquals("Inline Sell Volume calculation matches expected",35, calculatedSellInlineVolume);//35 is expected but an incorrect value of 0 is returned
 
     }
     @Test
@@ -114,7 +114,7 @@ public class MyAlgoTest extends AbstractAlgoTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals(2,state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size()); //2 is expected but an incorrect value of 0 is returned
+        assertEquals(7,state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size()); //7 is expected but an incorrect value of 0 is returned
 
 
     }

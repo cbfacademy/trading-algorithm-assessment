@@ -49,7 +49,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         long newChildOrderCount = state.getChildOrders().size();
         final var newChildBuyOrderCount = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList().size();
 
-        assertEquals("Active child buy order count has increased to 4",4,newChildBuyOrderCount);//asserts active child buy orders have increased by 1
+        assertEquals("Active child buy order count has increased to 4",4,newChildBuyOrderCount);//asserts active child buy orders have increased to 4
 
     }
 
@@ -70,9 +70,9 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //when: the market has an imbalance with increased pressure on the buy side a sell order is created if the best bid is less or equal to the VWAP benchmark
 
         send(createTick3());
-        send(createTick4());//this tick tests the algorithms logic and reaction to volume imbalance (best bid volume =500, best ask volume = 175)
+        send(createTick4());//this tick tests the algorithms logic and reaction to volume imbalance (best bid volume =500, best ask volume = 46)
         final var newChildSellOrderCount = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size();
-        assertEquals("Active child sell order count has increased to 2",2, newChildSellOrderCount);//asserts sell orders have increased by 2
+        assertEquals("Active child sell order count has increased to 6",6, newChildSellOrderCount);//asserts sell orders have increased to 6
 
     }
     @Test
@@ -166,7 +166,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals(8,state.getChildOrders().size());//asserting that 8 Child Orders have been created
+        assertEquals(13,state.getChildOrders().size());//asserting that 13 Child Orders have been created
     }
 
     @Test
@@ -182,7 +182,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals(6,state.getActiveChildOrders().size()); //asserts that 6 child orders exist after ticks were sent
+        assertEquals(11,state.getActiveChildOrders().size()); //asserts that 11 child orders exist after ticks were sent
     }
     @Test
     public void VWAPCalculation() throws Exception {
@@ -219,7 +219,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         double calculatedVolumeImbalanceIndication = algoLogic.calculateVolumeImbalance(state); // Capturing result of the calculation
 
         // then
-        assertEquals("Volume Imbalance calculation matches expected",0.17233294255568582,calculatedVolumeImbalanceIndication);
+        assertEquals("Volume Imbalance calculation matches expected",0.25,calculatedVolumeImbalanceIndication);
 
     }
     @Test
@@ -237,7 +237,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         long calculatedSellInlineVolume = algoLogic.sellVolumeInline(state,25.0); // Capturing result of the calculation
 
         // then
-        assertEquals("Inline Sell Volume calculation matches expected",33, calculatedSellInlineVolume);
+        assertEquals("Inline Sell Volume calculation matches expected",35, calculatedSellInlineVolume);
 
     }
     @Test
@@ -268,7 +268,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         SimpleAlgoState state = container.getState();
 
         //then
-        assertEquals(2,state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size());  //asserts that 2 child sell orders exist after ticks were sent
+        assertEquals(7,state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size());  //asserts that 7 child sell orders exist after ticks were sent
 
     }
     @Test

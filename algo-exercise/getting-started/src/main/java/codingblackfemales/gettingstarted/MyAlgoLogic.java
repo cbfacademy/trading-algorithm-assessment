@@ -111,7 +111,7 @@ public class MyAlgoLogic implements AlgoLogic {
             if (calculateSharesRemainingToSell(state) > 0 && (bestAskPrice >= VWAP && volumeImbalanceOutput.contains("POSITIVE"))) {
                 logger.info("[MYALGO] Have " + sellOrders.size() + " sell orders. VWAP and Volume Imbalance conditions have been met. Adding sell order for " + sellVolumeInline(state,25.0) + " @ " + bestAskPrice);
                 sellOrder = true; //create sell child order if volume imbalance indicates as positive as it indicates an imminent increase in midpoint due to increased buying pressure.
-                //adopting a participation rate of 20%  as selling volume as part of exit strategy to ensure a discrete exit and impacting the market as little as possible.
+                //adopting a participation rate of 25% of average volume of executed buy orders as selling volume as part of exit the strategy to ensure a discrete exit and impacting the market as little as possible.
             }
             if (buyOrder) {
                 return new CreateChildOrder(Side.BUY, bestBidQuantity, bestBidPrice);
@@ -210,11 +210,6 @@ public class MyAlgoLogic implements AlgoLogic {
 
     }
 
-    private long calculateTotalExecutedVolume(SimpleAlgoState state) {
-        return state.getActiveChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).mapToLong(ChildOrder::getFilledQuantity).sum();
-
-    }
-
     private long calculateSharesRemainingToSell(SimpleAlgoState state) {
         long filledBuyVolume = state.getActiveChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.BUY).mapToLong(ChildOrder::getFilledQuantity).sum();
         long filledSellVolume = state.getActiveChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.SELL).mapToLong(ChildOrder::getFilledQuantity).sum();
@@ -223,19 +218,19 @@ public class MyAlgoLogic implements AlgoLogic {
     }
 
     protected long sellVolumeInline(SimpleAlgoState state, double participationRate) {
-//        double actualParticipationRate= participationRate /(100-participationRate);//adjusting participation rate to account for own trading
-//        long volumeInlineSellQuantity = (long) (calculateTotalExecutedVolume(state) * actualParticipationRate);
-        double adjustedParticipationRate = participationRate;
+
+        double adjustedParticipationRate = participationRate;//allows participation rate to dynamically change depending on bid-ask spread(base participation rate = 25%)
+
         if(bidAskSpreadPercentage(state)>3.0) {
-            adjustedParticipationRate *= 0.75;
+            adjustedParticipationRate *= 0.80;//in a slightly more volatile spread the participation rate will be lowered from 25% to 20%
         } else if (bidAskSpreadPercentage(state)<1.5) {
-            adjustedParticipationRate *= 1.2;
+            adjustedParticipationRate *= 1.2; //in a slightly more liquid spread the participation rate will be increased from 25% to 30%
         }
 
         double averageFilledBuySize = state.getActiveChildOrders().stream().filter(order->order.getState()==OrderState.FILLED&&order.getSide()==Side.BUY).mapToDouble(ChildOrder::getFilledQuantity).average().orElse(0);
         long volumeInlineSellQuantity = (long) (averageFilledBuySize * (adjustedParticipationRate/100));
         return Math.min(volumeInlineSellQuantity, calculateSharesRemainingToSell(state));
-// in the case where there are not enough shares to trade at 20% inline of the market volume the quantity of the remaining shares will be returned
+// in the case where there are not enough shares to trade at the returned volume the quantity of the remaining shares will be returned
     }
 
     private void profitTracker(SimpleAlgoState state) {
