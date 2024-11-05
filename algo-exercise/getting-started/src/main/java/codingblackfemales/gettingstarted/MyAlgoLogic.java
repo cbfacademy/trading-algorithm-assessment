@@ -14,6 +14,7 @@ import messages.order.Side;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -222,6 +223,46 @@ public class MyAlgoLogic implements AlgoLogic {
         return childBidOrderQuantity;
     }
 
+
+    // Historical data from most recent ticks (up to the 10 most recent ticks)
+    private List<Long> historyOfBestBidPrice = new LinkedList<>();
+    private List<Long> historyOfBestAskPrice = new LinkedList<>();
+    private List<Long> historyOfTheSpread = new LinkedList<>();
+    private List<Double> historyOfMidPrice = new LinkedList<>();
+    private List<Double> historyOfRelativeSpread = new LinkedList<>();
+    private List<Long> historyOfTotalQuantityOfBidOrders = new LinkedList<>();
+    private List<Long> historyOfTotalQuantityOfAskOrders = new LinkedList<>();
+    private List<Long> historyOfVWAP = new LinkedList<>();
+
+
+    // getters to access lists of historical data
+    public List<Long> getHistoryOfBestBidPrice() {
+        return historyOfBestBidPrice;
+    }
+
+    public List<Long> getHistoryOfBestAskPrice() {
+        return historyOfBestAskPrice;
+    }
+
+    public List<Long> getHistoryOfTheSpread() {
+        return historyOfTheSpread;
+    }
+
+    public List<Double> getHistoryOfMidPrice() {
+        return historyOfMidPrice;
+    }
+
+    public List<Double> getHistoryOfRelativeSpread() {
+        return historyOfRelativeSpread;
+    }
+
+    public List<Long> getHistoryOfTotalQuantityOfBidOrders() {
+        return historyOfTotalQuantityOfBidOrders;
+    }
+
+    public List<Long> getHistoryOfTotalQuantityOfAskOrders() {
+        return historyOfTotalQuantityOfAskOrders;
+    }
 
     // DATA ABOUT MY ALGO'S CHILD ORDERS
 
@@ -433,16 +474,26 @@ public class MyAlgoLogic implements AlgoLogic {
         return totalProfitOrLoss;
     }
 
-    public long getTotalFilledQuantityOfAllBidAndAskOrders() {    
-        return getTotalFilledBidQuantity() + getTotalFilledAskQuantity();
+    private long totalFilledQuantityOfAllChildBidAndAskOrders;
+
+    private void setTotalFilledQuantityOfAllChildBidAndAskOrders() {
+        totalFilledQuantityOfAllChildBidAndAskOrders = getAllChildOrdersList().stream()
+        .map(ChildOrder::getFilledQuantity)
+        .reduce(Long::sum)
+        .orElse(0L);
     }
+
+    public long getTotalFilledQuantityOfAllChildBidAndAskOrders() {
+           return totalFilledQuantityOfAllChildBidAndAskOrders;
+        
+        }
 
 
     private void setVWAP() {        
         VWAP = getAllChildOrdersList().stream()
             .filter(order -> order.getFilledQuantity() > 0)
             .mapToLong(order -> order.getFilledQuantity() * order.getPrice())
-            .sum() / getTotalFilledQuantityOfAllBidAndAskOrders();
+            .sum() / getTotalFilledQuantityOfAllChildBidAndAskOrders();
     }
     
     public long getVWAP() {
@@ -606,11 +657,12 @@ public class MyAlgoLogic implements AlgoLogic {
             setTotalRevenue();
         }
 
+        setTotalFilledQuantityOfAllChildBidAndAskOrders();
         setNumOfSharesOwned();
         setChildBidOrderQuantity();
         setTotalProfitOrLoss();
 
-        if (getTotalFilledQuantityOfAllBidAndAskOrders() > 0) {
+        if (getTotalFilledQuantityOfAllChildBidAndAskOrders() > 0) {
             setVWAP();
         }
         
