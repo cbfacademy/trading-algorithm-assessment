@@ -1,7 +1,17 @@
 package codingblackfemales.gettingstarted;
 
+import codingblackfemales.action.CancelChildOrder;
+import codingblackfemales.action.CreateChildOrder;
+import codingblackfemales.action.NoAction;
+import codingblackfemales.action.Action;
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.sotw.marketdata.AskLevel;
+import codingblackfemales.sotw.marketdata.BidLevel;
+import messages.order.Side;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -22,14 +32,38 @@ public class MyAlgoTest extends AbstractAlgoTest {
         return new MyAlgoLogic();
     }
 
-
     @Test
     public void testDispatchThroughSequencer() throws Exception {
+        // Send a tick to simulate the market (only sent once)
+        send(createTick()); // Simulate a tick with default bid and ask prices
 
-        //create a sample market data tick....
-        send(createTick());
+        // Verify no more than 10 active child orders
+        assertEquals(10,container.getState().getActiveChildOrders().size()); // maxOrders = 10;
+    }
 
-        //simple assert to check we had 3 orders created
-        //assertEquals(container.getState().getChildOrders().size(), 3);
+    @Test
+    public void testHighBidScenario() throws Exception {
+        // Send high bid tick to simulate favorable conditions for selling
+        send(createTickHighBid());
+
+        // Check that a sell order was placed due to favorable bid prices
+        assertTrue(container.getState().getActiveChildOrders().stream()
+                .anyMatch(order -> order.getSide() == Side.SELL));
+    }
+
+    @Test
+    public void testLowAskScenario() throws Exception {
+        // Send low ask tick to simulate favorable conditions, but below priceLimit
+        send(createTickLowAsk());
+
+        // Check that no active buy orders were created due to the ask price being below the price limit
+        assertEquals(0, container.getState().getActiveChildOrders().size());
     }
 }
+
+
+
+
+
+
+

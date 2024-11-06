@@ -26,7 +26,7 @@ public class AddCancelAlgoLogic implements AlgoLogic {
 
         var totalOrderCount = state.getChildOrders().size();
 
-        //make sure we have an exit condition...
+        //make sure we have a  we have an xit condition...
         if (totalOrderCount > 20) {
             return NoAction.NoAction;
         }
@@ -36,6 +36,7 @@ public class AddCancelAlgoLogic implements AlgoLogic {
         if (activeOrders.size() > 0) {
 
             final var option = activeOrders.stream().findFirst();
+
 
             if (option.isPresent()) {
                 var childOrder = option.get();
@@ -53,4 +54,8 @@ public class AddCancelAlgoLogic implements AlgoLogic {
             return new CreateChildOrder(Side.BUY, quantity, price);
         }
     }
+    //@Override
+    //public long evaluate(SimpleAlgoState state, long size) {
+     //   return 0;
+    //}
 }
