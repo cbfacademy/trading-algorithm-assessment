@@ -4,15 +4,9 @@ Welcome to my electronic trading algorithm!
 
 ### My Rationale
 
-hfksfhf
+My algo takes into account the spread as well as the quantity of bid orders and ask orders on the market to establish if there is a buy pressure or a sell pressure.
+It then places orders accordingly
 
-**Key design decisions:** wshfjksfh. 
-
-##### Note
-
-MyAlgoTest
-MyAlgoBackTest
-AbstractAlgoTest
 
 ### How to Run The Algo
 

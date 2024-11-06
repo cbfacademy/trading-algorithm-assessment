@@ -1,0 +1,30 @@
+.MarketDepthPanel {
+    margin: 0 auto;
+    width: fit-content;
+}
+
+.MarketDepthPanel-table-heading {
+    text-align: center;
+}
+
+.MarketDepthPanel-level {
+    text-align: center;
+}
+
+
+.MarketDepthPanel-table {
+    width: 100%;
+    border-collapse: collapse; /* Ensures there are no gaps between cell borders */
+  }
+  
+  .MarketDepthPanel-table th,
+  .MarketDepthPanel-table td {
+    border: 1px solid #ccc; /* Adjust color to your preference */
+    padding: 8px; /* Adds some spacing within the cells */
+    text-align: center; /* Centers text in the cells */
+  }
+  
+  .MarketDepthPanel-table-heading {
+    background-color: #f4f4f4; /* Optional: Add a background color to headers */
+    font-weight: bold;
+  }
