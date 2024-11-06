@@ -64,14 +64,14 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
         //ADD asserts when you have implemented your algo logic
         assertEquals("Filled order size is 2",2,filledStateCount);//asserts that the algorithm has reached the two filled order requirement and can now make competitive orders
-        assertEquals("Active child sell order count is 0",0, childSellOrderCount);//asserts the sell order size is 0 before tick
+        assertEquals("Active child sell order count is 0",0, childSellOrderCount);//asserts the child sell order size is 0 before tick
 
         //when: the market has an imbalance with increased pressure on the buy side a sell order is created if the best bid is less or equal to the VWAP benchmark
 
         send(createTick3());
         send(createTick4());//this tick tests the algorithms logic and reaction to volume imbalance (best bid volume =500, best ask volume = 46)
         final var newChildSellOrderCount = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList().size();
-        assertEquals("Active child sell order count has increased to 6",6, newChildSellOrderCount);//asserts sell orders have increased to 6
+        assertEquals("Active child sell order count has increased to 6",6, newChildSellOrderCount);//asserts child sell orders have increased to 6
 
     }
     @Test

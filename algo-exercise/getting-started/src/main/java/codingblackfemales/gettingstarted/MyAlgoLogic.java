@@ -16,17 +16,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/*Welcome to my High Frequency Trading Algorithm.
-
-This algorithm assesses the market liquidity or volatility via the spread to determine whether conditions are prime to buy and
-sell or cancel. If a spread percentage under the set target limit is recorded and a minimum of two filled orders have been executed,
-the algo will utilise a High Frequency Trading indicator named Volume imbalance and a VWAP benchmark to assess market conditions to
-create child orders. If conditions are met child buy orders will be created at the current best bid price with the matching volume.
-In regard to the child sell orders; they will be created at the best ask price with a participation rate 25% of the average volume
-of executed buy orders. The Inline sell volume will fluctuate depending on the spread percentage. Lastly when the target spread
-percentage is not met, active child orders will be cancelled depending on whether they meet the best bid or ask price.*/
-
-
+/**
+* Welcome to my High Frequency Trading Algorithm.
+*
+* This algorithm assesses the market liquidity or volatility via the spread to determine whether conditions are prime to
+* buy and sell or cancel.
+*
+* If a spread percentage under the set target limit is recorded and a minimum of two filled orders have been executed,
+* the algo will utilise a High Frequency Trading indicator named Volume imbalance and a VWAP benchmark to assess market
+* conditions to create child orders.
+*
+* If conditions are met child buy orders will be created at the current best bid price with the matching volume.
+*
+* In regard to the child sell orders; they will be created at the best ask price with a participation rate 25% of the
+* average volume of executed buy orders. The Inline sell volume will fluctuate depending on the spread percentage.
+*
+* Lastly when the target spread percentage is not met, active child orders will be cancelled depending on whether
+* they meet the best bid or ask price.
+*/
 
 public class MyAlgoLogic implements AlgoLogic {
 
@@ -39,13 +46,7 @@ public class MyAlgoLogic implements AlgoLogic {
 
         logger.info("[MYALGO] The state of the order book is:\n" + orderBookAsString);
 
-        /********
-         *
-         * Add your logic here....
-         * check child order size < 5
-         *
-         *
-         */
+
         var totalOrderCount = state.getChildOrders().size();
 
         //make sure we have an exit condition...
@@ -91,8 +92,8 @@ public class MyAlgoLogic implements AlgoLogic {
 
             double VWAP = calculateVWAP(state);
 
-            final var buyOrders = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList();
-            final var sellOrders = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList();
+            final var buyChildOrders = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList();
+            final var sellChildOrders = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.SELL)).toList();
 
 
             logger.info("[MYALGO] VWAP calculated as: " + String.format("%.2f", VWAP)+ ", Volume Imbalance indicating: " + volumeImbalanceIndicator(state));
@@ -101,13 +102,13 @@ public class MyAlgoLogic implements AlgoLogic {
 
 
             if (filledBuyStateSize(state) < 5 && (bestBidPrice <= VWAP &&  volumeImbalanceIndicator(state).contains("NEGATIVE"))) {
-                logger.info("[MYALGO] Have " + buyOrders.size() + " Buy orders. VWAP and Volume Imbalance conditions have been met. Adding Buy order for " + bestBidQuantity + " @ " + bestBidPrice);
-                buyOrder = true; //create buy child order if volume imbalance indicates as negative as it indicates an imminent drop in midpoint due to increased selling pressure.
+                logger.info("[MYALGO] Have " + buyChildOrders.size() + " Buy orders. VWAP and Volume Imbalance conditions have been met. Adding Buy order for " + bestBidQuantity + " @ " + bestBidPrice);
+                buyOrder = true; //create buy child order if the volume imbalance indicates as negative as it indicates an imminent drop in midpoint due to increased selling pressure.
 
             }
             if (calculateSharesRemainingToSell(state) > 0 && (bestAskPrice >= VWAP &&  volumeImbalanceIndicator(state).contains("POSITIVE"))) {
-                logger.info("[MYALGO] Have " + sellOrders.size() + " Sell orders. VWAP and Volume Imbalance conditions have been met. Adding Sell order for " + sellVolumeInline(state,25.0) + " @ " + bestAskPrice);
-                sellOrder = true; //create sell child order if volume imbalance indicates as positive as it indicates an imminent increase in midpoint due to increased buying pressure.
+                logger.info("[MYALGO] Have " + sellChildOrders.size() + " Sell orders. VWAP and Volume Imbalance conditions have been met. Adding Sell order for " + sellVolumeInline(state,25.0) + " @ " + bestAskPrice);
+                sellOrder = true; //create sell child order if the volume imbalance indicates as positive as it indicates an imminent increase in midpoint due to increased buying pressure.
                 //adopting a participation rate of 25% of the average volume of executed buy orders as the sell quantity as part of exit the strategy to ensure a discrete exit with aims of impacting the market as little as possible.
             }
             if (buyOrder) {
@@ -173,7 +174,7 @@ public class MyAlgoLogic implements AlgoLogic {
     private String analyzedVolumeImbalance(double volumeImbalance) {
 
         String formattedVolumeImbalance = String.format("%.2f", volumeImbalance);
-
+      //the calculated volume imbalance value will range from -1 to 1
         if (volumeImbalance >= -1 && volumeImbalance <= -0.3) {
             return "NEGATIVE(" + formattedVolumeImbalance + "), POSSIBLE SELL PRESSURE";
 
@@ -220,9 +221,9 @@ public class MyAlgoLogic implements AlgoLogic {
         double adjustedParticipationRate = participationRate;//allows participation rate to dynamically change depending on bid-ask spread(base participation rate = 25%)
 
         if (bidAskSpreadPercentage(state) > 3.0) {
-            adjustedParticipationRate *= 0.80;//in a slightly more volatile spread the participation rate will be lowered from 25% to 20%
+            adjustedParticipationRate *= 0.80;// in a slightly more volatile spread the participation rate will be lowered from 25% to 20%
         } else if (bidAskSpreadPercentage(state) < 1.5) {
-            adjustedParticipationRate *= 1.2; //in a slightly more liquid spread the participation rate will be increased from 25% to 30%
+            adjustedParticipationRate *= 1.2; // in a slightly more liquid spread the participation rate will be increased from 25% to 30%
         }
 
         double averageFilledBuySize = state.getActiveChildOrders().stream().filter(order->order.getState()==OrderState.FILLED&&order.getSide()==Side.BUY).mapToDouble(ChildOrder::getFilledQuantity).average().orElse(0);
@@ -232,10 +233,11 @@ public class MyAlgoLogic implements AlgoLogic {
     }
 
     private void profitTracker(SimpleAlgoState state) {
-        long filledBuyVolume = state.getActiveChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.BUY).mapToLong(ChildOrder::getFilledQuantity).sum();
-        long filledSellVolume = state.getActiveChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.SELL).mapToLong(ChildOrder::getFilledQuantity).sum();
-        double totalBuyPriceQuantity =  state.getActiveChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.BUY).mapToDouble(order -> order.getFilledQuantity() * order.getPrice()).sum();
-        double totalSellPriceQuantity = state.getActiveChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.SELL).mapToDouble(order -> order.getFilledQuantity() * order.getPrice()).sum();
+        final var activeChildOrders = state.getActiveChildOrders();
+        long filledBuyVolume = activeChildOrders.stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.BUY).mapToLong(ChildOrder::getFilledQuantity).sum();
+        long filledSellVolume = activeChildOrders.stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.SELL).mapToLong(ChildOrder::getFilledQuantity).sum();
+        double totalBuyPriceQuantity =  activeChildOrders.stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.BUY).mapToDouble(order -> order.getFilledQuantity() * order.getPrice()).sum();
+        double totalSellPriceQuantity = activeChildOrders.stream().filter(order -> order.getState() == OrderState.FILLED && order.getSide() == Side.SELL).mapToDouble(order -> order.getFilledQuantity() * order.getPrice()).sum();
         double profit = totalSellPriceQuantity - totalBuyPriceQuantity;
         logger.info("[MYALGO] Revenue Tracker: Spent=£" + totalBuyPriceQuantity + ", Sold=£" + totalSellPriceQuantity + ", Profit=£" + profit + ", Shares Acquired=" +filledBuyVolume +  ", Shares Sold=" + filledSellVolume +  ", Shares Remaining=" +  calculateSharesRemainingToSell(state));
     }

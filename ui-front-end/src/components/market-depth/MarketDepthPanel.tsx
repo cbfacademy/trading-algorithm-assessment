@@ -20,7 +20,7 @@ export const MarketDepthPanel = ({ data }: MarketDepthPanelProps) => {
 
   return (
     <>
-      <h2>Algo Trading Stock ticker</h2>
+      <h2>Algo Trading Price Ticker</h2>
       <div className="table-container">
         <table className="MarketDepthPanel">
           <thead>
