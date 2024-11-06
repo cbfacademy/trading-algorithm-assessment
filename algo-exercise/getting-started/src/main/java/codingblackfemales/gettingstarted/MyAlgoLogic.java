@@ -707,6 +707,7 @@ public class MyAlgoLogic implements AlgoLogic {
         logger.info("getHistoryOfVWAP() is: " + getHistoryOfVWAP());
 
 
+
         logger.info("getChildBidOrderQuantity() is: " + getChildBidOrderQuantity());
         logger.info("getActiveChildBidOrdersToStringList() is: " + getActiveChildBidOrdersListToString());
         logger.info("getFilledAndPartFilledChildBidOrdersListToString() is: " + getFilledAndPartFilledChildBidOrdersListToString());
