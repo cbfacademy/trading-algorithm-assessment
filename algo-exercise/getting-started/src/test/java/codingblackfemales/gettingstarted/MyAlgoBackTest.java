@@ -46,7 +46,6 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //when: the market has an imbalance and increased pressure on the sell side a child buy order is created if the best ask is greater than or equal to the VWAP benchmark
 
         send(createTick3());//this tick tests the algorithms logic and reaction to volume imbalance (best bid volume =100, best ask volume = 200)
-        long newChildOrderCount = state.getChildOrders().size();
         final var newChildBuyOrderCount = state.getActiveChildOrders().stream().filter(order -> order.getSide().equals(Side.BUY)).toList().size();
 
         assertEquals("Active child buy order count has increased to 4",4,newChildBuyOrderCount);//asserts active child buy orders have increased to 4
@@ -132,7 +131,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
 
         //ADD asserts when you have implemented your algo logic
-        assertEquals("Filled state order count is 2", filledStateChildOrderCount, 2);//asserts that the algorithm has reached  two filled orders
+        assertEquals("Filled state order count is 2",2,filledStateChildOrderCount);//asserts that the algorithm has reached  two filled orders
         assertEquals("Filled order quantity is 602 ",602,filledQuantity);//asserts the filled quantity  is 602 before new ticks
 
         //when: fills are achieved child orders to need to be updated to reflect this
@@ -144,7 +143,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         final var newFilledStateChildOrderCount = state.getChildOrders().stream().filter(order -> order.getState() == OrderState.FILLED).toList().size();
         final var newFilledQuantity = state.getChildOrders().stream().mapToLong(ChildOrder::getFilledQuantity).sum();
 
-        assertEquals("New filled state order count is 4", newFilledStateChildOrderCount, 4);//asserts that filled state count is updated to 4 when orders are filled
+        assertEquals("New filled state order count is 4",  4,newFilledStateChildOrderCount);//asserts that filled state count is updated to 4 when orders are filled
         assertEquals("New filled order quantity is 712 ",712,newFilledQuantity);//asserts the filled quantity is updated to reflect the volume of the new fill orders
 
 
