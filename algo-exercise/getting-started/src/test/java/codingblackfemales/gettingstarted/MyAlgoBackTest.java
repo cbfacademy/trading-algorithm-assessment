@@ -425,7 +425,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
 
     
     @Test
-    public void testCreatesChildOrderOnSellSide () throws Exception {
+    public void testCreatesChildOrderOnSellSide() throws Exception {
         send(Tick1());
         send(Tick2());
 
@@ -437,7 +437,7 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     }
 
     @Test
-    public void testPriceOfActiveChildBidOrderIsAsExpected () throws Exception {
+    public void testPriceOfActiveChildAskOrderIsAsExpected() throws Exception {
 
         send(Tick1());
         send(Tick2());
