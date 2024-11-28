@@ -1,7 +1,12 @@
 package codingblackfemales.gettingstarted;
 
 import codingblackfemales.algo.AlgoLogic;
+import codingblackfemales.sotw.ChildOrder;
+import messages.order.Side;
+import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * This test plugs together all of the infrastructure, including the order book (which you can trade against)
@@ -20,6 +25,14 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
     @Override
     public AlgoLogic createAlgoLogic() {
         return new MyAlgoLogic();
+    }
+
+
+    @Before
+
+    public  void setup() {
+        container.getState().getChildOrders().clear();
+
     }
 
     @Test
@@ -42,4 +55,25 @@ public class MyAlgoBackTest extends AbstractAlgoBackTest {
         //assertEquals(225, filledQuantity);
     }
 
+    @Test public  void testForOrderManagement () throws Exception{
+        send(createTick());
+        send(createTick2());
+
+        //check algo has a max order limit of 10
+        assertTrue("There should be at least 10 child orders", container.getState().getChildOrders().size() <=10 );
+    }
+
+//    @Test
+//
+//    public void testCancelOrders () throws Exception{
+//        for (int i = 0; i< 5; i++){
+//            container.getState().getChildOrders().add(new ChildOrder(Side.BUY, 500L + i, 110, 115, i + 1));
+//            send(createTick2());
+//            assertEquals(10, container.getState().getChildOrders().size());
+//            ChildOrder cancelOrders = container.getState().getChildOrders().stream().filter(order -> order.getState() == 2).findFirst().orElse(null);
+//            System.out.println("Check if there are cancelled orders. Found: " + (cancelOrders != null));
+//            assertEquals(true, cancelOrders != null);
+//
+//        }
+//    }
 }
